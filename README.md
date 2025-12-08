@@ -1,2 +1,2 @@
 # FRAGO
-FYP
+Final Year Project
