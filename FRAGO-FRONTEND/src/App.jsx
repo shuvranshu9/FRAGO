@@ -1,15 +1,13 @@
-
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
 
 
 function App() {
   return (
-    <>
-      
-      <p className="">
-        Initial Test
-      </p>
-    </>
-  )
+    <div className="App">
+      <LoginPage />
+    </div>
+  );
 }
 
-export default App
+export default App;

@@ -53,6 +53,7 @@ export const signupVendor = async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        const otp = Math.floor(100000 + Math.random() * 900000);
 
         await createUser({
             full_name,
@@ -60,14 +61,12 @@ export const signupVendor = async (req, res, next) => {
             phone,
             address,
             password_hash: hashedPassword,
-            role: "vendor"
+            role: "vendor",
+            otp
         });
 
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        otpStore.set(email, otp);
-
         await sendOtpMail(email, otp);
-
+        
         res.status(201).json({ message: "Vendor registered. OTP sent to email." });
     } catch (err) {
         next(err);
