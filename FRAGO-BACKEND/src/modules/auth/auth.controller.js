@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import { sendOtpMail } from "../../utils/sendOtp.js";
-import { findUserByEmail, createUser, verifyUser } from "./auth.model.js";
+import { findUserByEmail, createUser, verifyUserOtp } from "./auth.model.js";
 
-const otpStore = new Map(); 
+const otpStore = new Map();
 
 export const signupBuyer = async (req, res, next) => {
     try {
@@ -18,6 +18,7 @@ export const signupBuyer = async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        const otp = Math.floor(100000 + Math.random() * 900000);
 
         await createUser({
             full_name,
@@ -25,11 +26,9 @@ export const signupBuyer = async (req, res, next) => {
             phone,
             address,
             password_hash: hashedPassword,
-            role: "buyer"
+            role: "buyer",
+            otp
         });
-
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        otpStore.set(email, otp);
 
         await sendOtpMail(email, otp);
 
@@ -38,6 +37,7 @@ export const signupBuyer = async (req, res, next) => {
         next(err);
     }
 };
+
 
 export const signupVendor = async (req, res, next) => {
     try {
@@ -74,15 +74,24 @@ export const signupVendor = async (req, res, next) => {
     }
 };
 
-export const verifyOtp = async (req, res) => {
-    const { email, otp } = req.body;
+export const verifyOtp = async (req, res, next) => {
+    try {
+        const { email, otp } = req.body;
 
-    if (otpStore.get(email) != otp) {
-        return res.status(400).json({ message: "Invalid OTP" });
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
+        }
+
+        const result = await verifyUserOtp(email, otp);
+
+        if (!result.success) {
+            return res.status(result.status).json({ message: result.message });
+        }
+
+        res.json({ message: "Email verified successfully" });
+    } catch (err) {
+        next(err);
     }
-
-    await verifyUser(email);
-    otpStore.delete(email);
-
-    res.json({ message: "Email verified successfully" });
 };
+
+
