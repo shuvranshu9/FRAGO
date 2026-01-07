@@ -8,6 +8,10 @@ export const sendResetCodeMail = async (email, code) => {
         html: `
         <div style="font-family: Arial, sans-serif; background:#f6f8fb; padding:30px;">
             <div style="max-width:600px; margin:auto; background:#ffffff; padding:30px; border-radius:8px;">
+             <!-- Logo -->
+                <div style="text-align: center; padding: 2px;">
+                    <img src="https://res.cloudinary.com/de0tzovrb/image/upload/v1767807348/FRAGO_wkefyi.png" alt="Frago Logo" style="width: 300px;">
+                </div>
                 <h2 style="color:#222;">Password Reset Request</h2>
                 <p>Hello,</p>
                 <p>We received a request to reset your password.</p>
