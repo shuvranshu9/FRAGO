@@ -138,8 +138,8 @@ export const loginUser = (role) => async (req, res, next) => {
                 full_name: user.full_name,
                 email: user.email,
                 role: user.role,
-                phone:user.phone,
-                address:user.address
+                phone: user.phone,
+                address: user.address
             }
         });
     } catch (err) {

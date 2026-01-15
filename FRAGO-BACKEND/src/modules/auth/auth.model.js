@@ -36,6 +36,7 @@ export const createUser = async ({
     return result;
 };
 
+
 export const verifyUserOtp = async (email, otp) => {
     // Fetch OTP info
     const [rows] = await pool.execute(
