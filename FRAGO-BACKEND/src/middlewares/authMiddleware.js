@@ -23,3 +23,10 @@ export const requireVendor = (req, res, next) => {
     }
     next();
 };
+
+export const requireBuyer = (req, res, next) => {
+    if (req.user.role !== 'buyer') {
+        return res.status(403).json({ message: 'Forbidden: Buyers only' });
+    }
+    next();
+};
