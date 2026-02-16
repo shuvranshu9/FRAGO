@@ -7,6 +7,8 @@ import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import VerifyOTPPage from "./pages/VerifyOtp.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import HomePage from "./pages/HomePage.jsx";
+import AboutUsPage from "./pages/AboutUsPage.jsx";
+import ContactUsPage from "./pages/ContactUsPage.jsx";
 
 export default function App() {
   return (
@@ -15,6 +17,8 @@ export default function App() {
         {/* Default redirect */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/about-us" element={<AboutUsPage />} />
+          <Route path="/contact-us" element={<ContactUsPage />} />
         </Route>
 
         {/* Auth routes */}
@@ -50,6 +54,5 @@ export default function App() {
         theme="light"
       />
     </>
-
   );
 }
