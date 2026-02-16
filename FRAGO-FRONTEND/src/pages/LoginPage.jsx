@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Eye, EyeOff, User, UserCheck } from "lucide-react";
+import { Eye, EyeOff, User, UserCheck, ArrowLeft } from "lucide-react";
 import LogoImg from "../assets/FRAGO.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../utils/api";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -84,6 +84,18 @@ function LoginForm() {
 
   return (
     <div className="space-y-8">
+      {/* Back to Home */}
+      <Link
+        to="/"
+        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-green-700 transition group"
+      >
+        <ArrowLeft
+          size={18}
+          className="transition-transform group-hover:-translate-x-1"
+        />
+        Back to Home
+      </Link>
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-normal md:font-semibold text-gray-900">
