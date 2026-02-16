@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   User,
   Mail,
@@ -11,26 +12,14 @@ import {
   Heart,
   Bell,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      // Redirect to login if no user found
-      navigate("/login");
-    }
-  }, [navigate]);
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    logout();
     toast.success("Logged out successfully");
     navigate("/login");
   };

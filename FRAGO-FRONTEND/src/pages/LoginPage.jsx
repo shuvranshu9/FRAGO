@@ -4,6 +4,7 @@ import LogoImg from "../assets/FRAGO.png";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   return (
@@ -40,6 +41,7 @@ export default function LoginPage() {
 
 function LoginForm() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("buyer");
@@ -63,9 +65,8 @@ function LoginForm() {
 
       const res = await api.post(endpoint, { email, password });
 
-      // Store token and user info
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      // Store token and user info via context
+      login(res.data.user, res.data.token);
 
       toast.success(res.data.message || "Login successful!");
 

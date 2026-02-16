@@ -10,17 +10,26 @@ import HomePage from "./pages/HomePage.jsx";
 import AboutUsPage from "./pages/AboutUsPage.jsx";
 import ContactUsPage from "./pages/ContactUsPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
 
 export default function App() {
   return (
-    <>
+    <AuthProvider>
       <Routes>
-        {/* Default redirect */}
+        {/* Public routes within MainLayout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
-          <Route path="/account" element={<AccountPage />} />
+
+          {/* Protected routes within MainLayout */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/wishlist" element={<div>Wishlist Page</div>} />
+            <Route path="/chat" element={<div>Chat Page</div>} />
+            <Route path="/cart" element={<div>Cart Page</div>} />
+          </Route>
         </Route>
 
         {/* Auth routes */}
@@ -55,6 +64,6 @@ export default function App() {
         pauseOnHover
         theme="light"
       />
-    </>
+    </AuthProvider>
   );
 }
