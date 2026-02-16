@@ -5,13 +5,17 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import VerifyOTPPage from "./pages/VerifyOtp.jsx";
+import MainLayout from "./layout/MainLayout.jsx";
+import HomePage from "./pages/HomePage.jsx";
 
 export default function App() {
   return (
     <>
       <Routes>
         {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<HomePage />} />
+        </Route>
 
         {/* Auth routes */}
         <Route path="/login" element={<LoginPage />} />

@@ -45,9 +45,10 @@ function ForgotPasswordForm() {
         e.preventDefault();
         setLoading(true);
 
+        // Call forgot password API here
         setTimeout(() => {
             setLoading(false);
-            // navigate("/reset-password"); 
+            // navigate("/reset-password"); // optional
         }, 1000);
     };
 

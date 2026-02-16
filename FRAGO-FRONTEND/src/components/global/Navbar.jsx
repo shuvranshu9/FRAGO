@@ -1,0 +1,226 @@
+import { useState, useEffect, useRef } from "react";
+import { Search, User, Heart, ShoppingBag, Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import Logo from "../../assets/LOGO.png";
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setIsVisible(false); // Hide
+      } else {
+        setIsVisible(true); // Show
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <nav
+      className={`fixed top-0 left-0 w-full z-50 bg-white transform duration-300 ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
+    >
+      {/* Top Bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-24">
+          {/* Left: Search Bar (Hidden on mobile, visible on lg) */}
+          <div className="hidden lg:flex flex-1 items-center justify-start">
+            <div className="relative w-full max-w-sm">
+              <input
+                type="text"
+                placeholder="Hey, what are you looking for?"
+                className="w-full bg-gray-50 border border-gray-200 rounded-full py-2.5 pl-5 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-gray-400 focus:ring-0 transition-all"
+              />
+              <button className="absolute right-0 top-1/2 -translate-y-1/2 mr-3 p-1.5 text-gray-500 hover:text-gray-800 rounded-full hover:bg-gray-100 transition-colors">
+                <Search size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu Button (Visible on mobile) */}
+          <div className="flex items-center lg:hidden flex-1">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-700 hover:text-black focus:outline-none p-2"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+
+          {/* Center: Logo */}
+          <div className="flex-shrink-0 flex flex-col items-center justify-center mx-4">
+            <Link to="/" className="flex flex-col items-center group">
+              <div className="flex items-center">
+                <img
+                  src={Logo}
+                  alt="FRAGO"
+                  className="h-14 w-auto object-contain"
+                />
+                <span className="text-3xl md:text-4xl font-serif font-medium text-green-900 tracking-tight group-hover:opacity-90 transition-opacity">
+                  FRAGO
+                  <span className="text-sm text-gray-500 ml-0.5 align-top">
+                    .com
+                  </span>
+                </span>
+              </div>
+              <span className="text-[10px] sm:text-[11px] text-gray-400 tracking-[0.2em] font-medium mt-1 uppercase">
+                Trusted Online Since 2025
+              </span>
+            </Link>
+          </div>
+
+          {/* Right: Icons */}
+          <div className="flex-1 flex items-center justify-end space-x-6">
+            {/* Mobile Search Icon */}
+            <button className="lg:hidden p-2 text-gray-600 hover:text-black">
+              <Search size={22} />
+            </button>
+
+            <Link
+              to="/account"
+              className="hidden lg:flex items-center text-gray-600 hover:text-green-900 transition-colors group"
+            >
+              <User
+                size={22}
+                className="mr-2 group-hover:scale-105 transition-transform"
+              />
+              <span className="font-medium text-sm">My Account</span>
+            </Link>
+            <Link
+              to="/wishlist"
+              className="hidden lg:flex items-center text-gray-600 hover:text-green-900 transition-colors group"
+            >
+              <Heart
+                size={22}
+                className="mr-2 group-hover:scale-105 transition-transform"
+              />
+              <span className="font-medium text-sm">Wishlist</span>
+            </Link>
+            <Link
+              to="/cart"
+              className="flex items-center text-gray-600 hover:text-green-900 transition-colors group relative"
+            >
+              <ShoppingBag
+                size={22}
+                className="mr-2 group-hover:scale-105 transition-transform"
+              />
+              <span className="hidden lg:inline font-medium text-sm border-b border-gray-800 pb-0.5">
+                2 items
+              </span>
+              <span className="lg:hidden absolute -top-1 -right-1 bg-green-900 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                2
+              </span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Bar: Navigation Links (Desktop) */}
+      <div className="hidden lg:block border-t border-gray-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center space-x-10 py-4">
+            {["Perfumes", "Brands", "Products", "About-US", "Contact-Us"].map(
+              (item) => (
+                <Link
+                  key={item}
+                  to={`/${item.toLowerCase()}`}
+                  className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
+                >
+                  {item}
+                </Link>
+              ),
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu (Drawer) */}
+      <div
+        className={`lg:hidden fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
+        onClick={() => setIsOpen(false)}
+      >
+        <div
+          className={`fixed inset-y-0 left-0 w-[80%] max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between p-4 border-b border-gray-100">
+            <span className="text-xl font-serif font-bold text-green-900">
+              Menu
+            </span>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 text-gray-500 hover:text-black"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-4 space-y-4 overflow-y-auto h-[calc(100vh-70px)]">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-3 pl-4 pr-10 text-sm focus:outline-none focus:border-green-300 transition-colors"
+              />
+              <Search
+                size={18}
+                className="absolute right-3 top-3.5 text-gray-400"
+              />
+            </div>
+
+            <div className="space-y-1 pt-2">
+              {[
+                "Perfumes",
+                "Brands",
+                "Skincare",
+                "Makeup",
+                "Haircare",
+                "Aromatherapy",
+                "Candles",
+                "Gifts",
+              ].map((item) => (
+                <Link
+                  key={item}
+                  to={`/${item.toLowerCase()}`}
+                  className="block px-3 py-3 text-base font-medium text-gray-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item}
+                </Link>
+              ))}
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-gray-100 space-y-4">
+              <Link
+                to="/account"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center px-3 py-2 text-gray-600 hover:text-green-900"
+              >
+                <User size={20} className="mr-3" />
+                <span className="font-medium">My Account</span>
+              </Link>
+              <Link
+                to="/wishlist"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center px-3 py-2 text-gray-600 hover:text-green-900"
+              >
+                <Heart size={20} className="mr-3" />
+                <span className="font-medium">Wishlist</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
