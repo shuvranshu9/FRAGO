@@ -8,6 +8,23 @@ const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+    } else {
+      document.body.style.overflow = "unset";
+      document.body.style.position = "static";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+      document.body.style.position = "static";
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -26,7 +43,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 bg-white transform duration-300 ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
+      className={`fixed top-0 left-0 w-full z-[100] bg-white transform duration-300 ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
     >
       {/* Top Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,6 +67,7 @@ const Navbar = () => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-700 hover:text-black focus:outline-none p-2"
+              aria-label="Toggle menu"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -127,93 +145,97 @@ const Navbar = () => {
       <div className="hidden lg:block border-t border-gray-100 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center space-x-10 py-4">
-            {["Perfumes", "Brands", "Products", "About-Us", "Contact-Us"].map(
-              (item) => (
-                <Link
-                  key={item}
-                  to={`/${item.toLowerCase()}`}
-                  className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
-                >
-                  {item.replace("-", " ")}
-                </Link>
-              ),
-            )}
+            {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase()}`}
+                className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
+              >
+                {item.replace("-", " ")}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Mobile Menu (Drawer) */}
       <div
-        className={`lg:hidden fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
-        onClick={() => setIsOpen(false)}
+        className={`lg:hidden fixed inset-0 z-[110] transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
       >
+        {/* Backdrop */}
         <div
-          className={`fixed inset-y-0 left-0 w-[80%] max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
-          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+          onClick={() => setIsOpen(false)}
+        />
+
+        {/* Drawer */}
+        <div
+          className={`absolute top-0 left-0 w-[80%] max-w-sm h-full bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+          style={{ backgroundColor: "#ffffff" }}
         >
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <span className="text-xl font-serif font-bold text-green-900">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white">
+            <span className="text-2xl font-serif font-bold text-green-900">
               Menu
             </span>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 text-gray-500 hover:text-black"
+              className="p-2 text-gray-500 hover:text-black rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Close menu"
             >
               <X size={24} />
             </button>
           </div>
 
-          <div className="p-4 space-y-4 overflow-y-auto h-[calc(100vh-70px)]">
+          <div className="p-6 space-y-8 overflow-y-auto h-[calc(100vh-80px)] bg-white">
+            {/* Mobile Search */}
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-3 pl-4 pr-10 text-sm focus:outline-none focus:border-green-300 transition-colors"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-3.5 pl-4 pr-10 text-sm focus:outline-none focus:border-green-300 transition-colors"
               />
               <Search
                 size={18}
-                className="absolute right-3 top-3.5 text-gray-400"
+                className="absolute right-3 top-4 text-gray-400"
               />
             </div>
 
-            <div className="space-y-1 pt-2">
-              {[
-                "Perfumes",
-                "Brands",
-                "About-Us",
-                "Skincare",
-                "Makeup",
-                "Haircare",
-                "Aromatherapy",
-                "Candles",
-                "Gifts",
-              ].map((item) => (
+            {/* Navigation Links */}
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-4 px-3">
+                Categories
+              </p>
+              {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => (
                 <Link
                   key={item}
                   to={`/${item.toLowerCase()}`}
-                  className="block px-3 py-3 text-base font-medium text-gray-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
+                  className="block px-3 py-3.5 text-base font-medium text-gray-700 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
                   onClick={() => setIsOpen(false)}
                 >
-                  {item}
+                  {item.replace("-", " ")}
                 </Link>
               ))}
             </div>
 
-            <div className="pt-6 mt-6 border-t border-gray-100 space-y-4">
+            {/* Account Links */}
+            <div className="pt-6 border-t border-gray-100 space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-4 px-3">
+                Settings
+              </p>
               <Link
                 to="/account"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center px-3 py-2 text-gray-600 hover:text-green-900"
+                className="flex items-center px-3 py-3 text-gray-700 hover:text-green-900 rounded-lg hover:bg-green-50 transition-colors"
               >
-                <User size={20} className="mr-3" />
+                <User size={20} className="mr-3 text-gray-400" />
                 <span className="font-medium">My Account</span>
               </Link>
               <Link
                 to="/wishlist"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center px-3 py-2 text-gray-600 hover:text-green-900"
+                className="flex items-center px-3 py-3 text-gray-700 hover:text-green-900 rounded-lg hover:bg-green-50 transition-colors"
               >
-                <Heart size={20} className="mr-3" />
+                <Heart size={20} className="mr-3 text-gray-400" />
                 <span className="font-medium">Wishlist</span>
               </Link>
             </div>

@@ -11,7 +11,7 @@ const ContactForm = () => {
           <input
             type="text"
             className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-green-800 transition-colors"
-            placeholder="John Doe"
+            placeholder="Enter your name"
           />
         </div>
         <div className="space-y-2">
@@ -21,7 +21,7 @@ const ContactForm = () => {
           <input
             type="email"
             className="w-full bg-gray-50 border border-gray-100 p-4 text-sm focus:outline-none focus:border-green-800 transition-colors"
-            placeholder="john@example.com"
+            placeholder="Enter your email"
           />
         </div>
       </div>

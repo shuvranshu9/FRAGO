@@ -20,7 +20,7 @@ const ContactUsPage = () => {
                   color: theme.colors.text.primary,
                 }}
               >
-                Visit Our Boutique
+                Visit Our Store
               </h2>
               <div
                 className="w-16 h-[2px]"

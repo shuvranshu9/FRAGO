@@ -5,23 +5,23 @@ const ContactInfo = () => {
   const infoItems = [
     {
       icon: <MapPin size={24} />,
-      title: "Our Boutique",
-      content: "123 Fragrance Lane, Scent District, NY 10001",
+      title: "Our Location",
+      content: "Kathmandu, Nepal",
     },
     {
       icon: <Phone size={24} />,
       title: "Call Us",
-      content: "+1 (555) 000-FRAGO",
+      content: "+977-981234567",
     },
     {
       icon: <Mail size={24} />,
       title: "Email Us",
-      content: "concierge@frago.com",
+      content: "teamfrago@gmail.com",
     },
     {
       icon: <Clock size={24} />,
       title: "Opening Hours",
-      content: "Mon - Sat: 10am - 8pm | Sun: 11am - 6pm",
+      content: "Mon - Sat: 10am - 8pm <br/> Sun: 11am - 6pm",
     },
   ];
 
@@ -48,9 +48,10 @@ const ContactInfo = () => {
             >
               {item.title}
             </h3>
-            <p className="text-sm font-light text-gray-600 leading-relaxed">
-              {item.content}
-            </p>
+            <p
+              className="text-sm font-light text-gray-600 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: item.content }}
+            />
           </div>
         </div>
       ))}

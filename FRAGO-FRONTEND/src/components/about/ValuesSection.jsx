@@ -1,4 +1,7 @@
 import { theme } from "../../styles/theme";
+import { GiSparkles } from "react-icons/gi";
+import { GiHerbsBundle } from "react-icons/gi";
+import { GiHourglass } from "react-icons/gi";
 
 const ValuesSection = () => {
   const values = [
@@ -7,21 +10,21 @@ const ValuesSection = () => {
       title: "Craftsmanship",
       description:
         "Meticulously blended by master perfumers using time-honored techniques.",
-      icon: "✨",
+      icon: <GiSparkles className="text-2xl" />,
     },
     {
       id: 2,
       title: "Ethical Sourcing",
       description:
         "Sustainability is at our core, sourcing only the finest eco-conscious ingredients.",
-      icon: "🌿",
+      icon: <GiHerbsBundle className="text-2xl" />,
     },
     {
       id: 3,
       title: "Timeless Elegance",
       description:
         "Scents designed to last not just on the skin, but in the memory of those you encounter.",
-      icon: "⌛",
+      icon: <GiHourglass className="text-2xl" />,
     },
   ];
 
@@ -54,9 +57,13 @@ const ValuesSection = () => {
             <div key={value.id} className="text-center group">
               <div
                 className="w-16 h-16 mx-auto mb-6 flex items-center justify-center rounded-full transition-transform duration-500 group-hover:scale-110"
-                style={{ backgroundColor: "white", shadow: theme.shadows.md }}
+                style={{
+                  backgroundColor: "white",
+                  boxShadow: theme.shadows.md,
+                  color: theme.colors.primary,
+                }}
               >
-                <span className="text-2xl">{value.icon}</span>
+                {value.icon}
               </div>
               <h3
                 className="text-xl font-serif mb-4"
