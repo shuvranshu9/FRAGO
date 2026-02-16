@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, User, Heart, ShoppingBag, Menu, X } from "lucide-react";
+import {
+  Search,
+  User,
+  Heart,
+  ShoppingBag,
+  Menu,
+  X,
+  MessageCircleMore,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import Logo from "../../assets/LOGO.png";
 
@@ -120,7 +128,6 @@ const Navbar = () => {
                 size={22}
                 className="mr-2 group-hover:scale-105 transition-transform"
               />
-              <span className="font-medium text-sm">Wishlist</span>
             </Link>
             <Link
               to="/cart"
@@ -130,12 +137,15 @@ const Navbar = () => {
                 size={22}
                 className="mr-2 group-hover:scale-105 transition-transform"
               />
-              <span className="hidden lg:inline font-medium text-sm border-b border-gray-800 pb-0.5">
-                2 items
-              </span>
-              <span className="lg:hidden absolute -top-1 -right-1 bg-green-900 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                2
-              </span>
+            </Link>
+            <Link
+              to="/chat"
+              className="flex items-center text-gray-600 hover:text-green-900 transition-colors group relative"
+            >
+              <MessageCircleMore
+                size={22}
+                className="mr-2 group-hover:scale-105 transition-transform"
+              />
             </Link>
           </div>
         </div>

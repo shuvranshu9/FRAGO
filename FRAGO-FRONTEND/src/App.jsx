@@ -9,6 +9,7 @@ import MainLayout from "./layout/MainLayout.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import AboutUsPage from "./pages/AboutUsPage.jsx";
 import ContactUsPage from "./pages/ContactUsPage.jsx";
+import AccountPage from "./pages/AccountPage.jsx";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
+          <Route path="/account" element={<AccountPage />} />
         </Route>
 
         {/* Auth routes */}
