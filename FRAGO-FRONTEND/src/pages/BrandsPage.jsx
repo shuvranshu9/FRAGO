@@ -90,16 +90,22 @@ const MOCK_BRANDS = [
     description: "Peak craftsmanship and adventurous spirit.",
     logo: "https://fimgs.net/mdimg/dizajneri/o.107.jpg",
   },
+  {
+    id: "cr7",
+    name: "CR7",
+    description: "Avant-garde sophistication and intellectual luxury.",
+    logo: "https://cdn.shopify.com/s/files/1/0281/0635/8862/files/CR7-logo_2x_303833de-98c0-42d7-a8eb-7d8d4cab383e.png?height=628&pad_color=fff&v=1613681212",
+  },
 ];
 
 const BrandsPage = () => {
   const [filteredBrands] = useState(MOCK_BRANDS);
-  
+
   return (
     <div className="bg-white min-h-screen">
       {/* Page Header */}
-      <header className="relative py-24 px-4 md:px-8 bg-[#FAF6F3] overflow-hidden">
-        <div className="max-w-6xl mx-auto relative z-10">
+      <header className="relative py-0 md:py-24 px-4 md:px-8 bg-[#FAF6F3] overflow-hidden ">
+        <div className="max-w-6xl mx-auto relative z-10 ">
           <div className="flex items-center justify-between gap-12">
             {/* Left Content */}
             <div className="max-w-2xl animate-slide-up">
@@ -134,7 +140,7 @@ const BrandsPage = () => {
       </header>
 
       {/* Brands Grid */}
-      <section className="px-4 md:px-8">
+      <section className="px-4 md:px-8 mb-6 md:mb-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 animate-fade-in delay-100">
             {filteredBrands.map((brand) => (
@@ -158,7 +164,7 @@ const BrandsPage = () => {
         </div>
 
         {/* Decorative background text */}
-        <div className="absolute -bottom-10 right-10 text-[200px] font-serif text-white/5 whitespace-nowrap select-none pointer-events-none uppercase">
+        <div className="absolute md:-bottom-10 bottom-4 right-10 md:text-[110px] text-[60px] font-serif text-white/5 whitespace-nowrap select-none pointer-events-none uppercase">
           Fragrance
         </div>
       </section>

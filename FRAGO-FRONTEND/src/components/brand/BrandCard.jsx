@@ -1,19 +1,22 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-
 const BrandCard = ({ brand }) => {
+  const getBrandSize = (brandId) => {
+    const sizeMap = {
+      chanel: "w-38 h-38",
+      gucci: "w-28 h-28",
+      cr7: "w-28 h-28",
+    };
+
+    return sizeMap[brandId] || "w-full h-full";
+  };
+
   return (
     <div className="group relative bg-[#FAF6F3] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
       {/* Brand Image/Logo Container */}
       <div className="aspect-[16/10] overflow-hidden bg-white flex items-center justify-center p-8">
         <img
-          src={
-            brand.logo ||
-            "https://images.unsplash.com/photo-1541604193435-22287d32c2c2?auto=format&fit=crop&q=80&w=300"
-          }
+          src={brand.logo}
           alt={brand.name}
-          className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
+          className={`${getBrandSize(brand.id)} object-contain transition-transform duration-700 group-hover:scale-110`}
         />
       </div>
 
@@ -40,5 +43,4 @@ const BrandCard = ({ brand }) => {
     </div>
   );
 };
-
 export default BrandCard;

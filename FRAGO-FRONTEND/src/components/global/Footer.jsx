@@ -53,7 +53,7 @@ const Footer = () => {
                   color: theme.colors.primary,
                   backgroundColor: "#ffffff",
                 }}
-                className="absolute right-1 rounded-full px-6 py-2.5 font-medium text-sm hover:bg-gray-100 transition-colors"
+                className="absolute right-1 rounded-full px-6 py-2.5 font-bold text-xs uppercase tracking-widest hover:bg-green-900 hover:text-white transition-all duration-500"
               >
                 Subscribe
               </button>
@@ -68,7 +68,7 @@ const Footer = () => {
             <Link
               to="/"
               style={{ fontFamily: theme.fonts.heading }}
-              className="text-2xl font-bold tracking-wide uppercase"
+              className="text-2xl font-bold tracking-wide uppercase text-white hover:text-primaryLight transition-all duration-300 inline-block hover:scale-105"
             >
               FRAGO
             </Link>
@@ -85,9 +85,9 @@ const Footer = () => {
                   key={index}
                   href="#"
                   style={{ backgroundColor: theme.colors.secondary }}
-                  className="p-2 rounded-full hover:opacity-80 transition-opacity"
+                  className="p-3 rounded-full hover:bg-white hover:text-green-900 transition-all duration-500 transform hover:-translate-y-1 hover:scale-110 shadow-lg shadow-black/10"
                 >
-                  <Icon size={18} />
+                  <Icon size={16} />
                 </a>
               ))}
             </div>
@@ -97,7 +97,7 @@ const Footer = () => {
           <div>
             <h4
               style={{ fontFamily: theme.fonts.heading }}
-              className="text-lg font-medium mb-6"
+              className="text-lg font-medium mb-6 text-white hover:text-primaryLight transition-colors duration-500 cursor-default"
             >
               Shop
             </h4>
@@ -113,7 +113,7 @@ const Footer = () => {
                   <Link
                     to={`/${item.toLowerCase().replace(" ", "-")}`}
                     style={{ color: theme.colors.text.muted }}
-                    className="hover:text-white text-sm transition-colors"
+                    className="hover:text-white hover:translate-x-2 text-sm transition-all duration-300 inline-block"
                   >
                     {item}
                   </Link>
@@ -126,7 +126,7 @@ const Footer = () => {
           <div>
             <h4
               style={{ fontFamily: theme.fonts.heading }}
-              className="text-lg font-medium mb-6"
+              className="text-lg font-medium mb-6 text-white hover:text-primaryLight transition-colors duration-500 cursor-default"
             >
               Support
             </h4>
@@ -142,7 +142,7 @@ const Footer = () => {
                   <Link
                     to={`/${item.toLowerCase().replace(" & ", "-").replace(" ", "-")}`}
                     style={{ color: theme.colors.text.muted }}
-                    className="hover:text-white text-sm transition-colors"
+                    className="hover:text-white hover:translate-x-2 text-sm transition-all duration-300 inline-block"
                   >
                     {item}
                   </Link>
@@ -155,48 +155,48 @@ const Footer = () => {
           <div>
             <h4
               style={{ fontFamily: theme.fonts.heading }}
-              className="text-lg font-medium mb-6"
+              className="text-lg font-medium mb-6 text-white hover:text-primaryLight transition-colors duration-500 cursor-default"
             >
               Contact Us
             </h4>
             <ul className="space-y-4">
-              <li className="flex items-start">
+              <li className="flex items-start group cursor-pointer">
                 <FaMapMarkerAlt
                   size={18}
                   style={{ color: theme.colors.primaryLight }}
-                  className="mr-3 mt-0.5"
+                  className="mr-3 mt-0.5 transition-transform duration-300 group-hover:scale-110"
                 />
                 <span
                   style={{ color: theme.colors.text.muted }}
-                  className="text-sm"
+                  className="text-sm transition-colors duration-300 group-hover:text-white"
                 >
                   Nepal
                   <br />
                   Kathmandu, Nepal 75001
                 </span>
               </li>
-              <li className="flex items-center">
+              <li className="flex items-center group cursor-pointer">
                 <FaPhoneAlt
                   size={18}
                   style={{ color: theme.colors.primaryLight }}
-                  className="mr-3"
+                  className="mr-3 transition-transform duration-300 group-hover:scale-110"
                 />
                 <span
                   style={{ color: theme.colors.text.muted }}
-                  className="text-sm"
+                  className="text-sm transition-colors duration-300 group-hover:text-white"
                 >
                   +977-9812345678
                 </span>
               </li>
-              <li className="flex items-center">
+              <li className="flex items-center group cursor-pointer">
                 <FaEnvelope
                   size={18}
                   style={{ color: theme.colors.primaryLight }}
-                  className="mr-3"
+                  className="mr-3 transition-transform duration-300 group-hover:scale-110"
                 />
                 <span
                   style={{ color: theme.colors.text.muted }}
-                  className="text-sm"
+                  className="text-sm transition-colors duration-300 group-hover:text-white"
                 >
                   hello@frago.com
                 </span>

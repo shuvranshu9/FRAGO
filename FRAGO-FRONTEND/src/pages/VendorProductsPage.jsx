@@ -22,7 +22,7 @@ const VendorProductsPage = () => {
         "http://localhost:8000/api/perfume/vendor",
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       setProducts(response.data);
     } catch (error) {
@@ -69,7 +69,7 @@ const VendorProductsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28 pb-20 px-4 md:px-8">
+    <div className="min-h-screen bg-gray-50 pt-16 pb-16 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -141,9 +141,9 @@ const VendorProductsPage = () => {
                 className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow group"
               >
                 <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
-                  {product.images && product.images.length > 0 ? (
+                  {product.image_url ? (
                     <img
-                      src={product.images[0]}
+                      src={product.image_url}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -183,26 +183,16 @@ const VendorProductsPage = () => {
                   </div>
                   <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
                     <div className="text-sm font-medium text-gray-900">
-                      {product.variants && product.variants.length > 0 ? (
+                      {product.price ? (
                         <span>
-                          NPR{" "}
-                          {Math.min(
-                            ...product.variants
-                              .filter((v) => v.price)
-                              .map((v) => v.price),
-                          )}{" "}
-                          +
+                          NPR {parseFloat(product.price).toLocaleString()}
                         </span>
                       ) : (
                         <span className="text-gray-400">No price set</span>
                       )}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {product.variants?.reduce(
-                        (acc, v) => acc + (v.stock_quantity || 0),
-                        0,
-                      )}{" "}
-                      in stock
+                      {product.stock_quantity || 0} in stock
                     </div>
                   </div>
                 </div>
