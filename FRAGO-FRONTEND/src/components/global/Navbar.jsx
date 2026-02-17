@@ -8,7 +8,7 @@ import {
   X,
   MessageCircleMore,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Logo from "../../assets/LOGO.png";
 import { useAuth } from "../../context/AuthContext";
 
@@ -17,6 +17,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const location = useLocation();
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -51,9 +52,21 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Helper function to check if link is active
+  const isActiveLink = (path) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  // Get active state for specific vendor paths
+  const isVendorProductsActive = location.pathname.startsWith("/vendor/products");
+  const isVendorCategoriesActive = location.pathname.startsWith("/vendor/categories");
+
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-[100] bg-white transform duration-300 ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
+      className={`fixed top-0 left-0 w-full z-100 bg-white transform duration-300 ${isVisible ? "translate-y-0" : "-translate-y-full"}`}
     >
       {/* Top Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,7 +97,7 @@ const Navbar = () => {
           </div>
 
           {/* Center: Logo */}
-          <div className="flex-shrink-0 flex flex-col items-center justify-center mx-4">
+          <div className="shrink-0 flex flex-col items-center justify-center mx-4">
             <Link to="/" className="flex flex-col items-center group">
               <div className="flex items-center">
                 <img
@@ -114,7 +127,11 @@ const Navbar = () => {
 
             <Link
               to="/account"
-              className="hidden lg:flex items-center text-gray-600 hover:text-green-900 transition-colors group"
+              className={`hidden lg:flex items-center transition-colors group ${
+                isActiveLink("/account") 
+                  ? "text-green-900" 
+                  : "text-gray-600 hover:text-green-900"
+              }`}
             >
               <User
                 size={22}
@@ -124,7 +141,11 @@ const Navbar = () => {
             </Link>
             <Link
               to="/wishlist"
-              className="hidden lg:flex items-center text-gray-600 hover:text-green-900 transition-colors group"
+              className={`hidden lg:flex items-center transition-colors group ${
+                isActiveLink("/wishlist") 
+                  ? "text-green-900" 
+                  : "text-gray-600 hover:text-green-900"
+              }`}
             >
               <Heart
                 size={22}
@@ -133,7 +154,11 @@ const Navbar = () => {
             </Link>
             <Link
               to="/cart"
-              className="flex items-center text-gray-600 hover:text-green-900 transition-colors group relative"
+              className={`flex items-center transition-colors group relative ${
+                isActiveLink("/cart") 
+                  ? "text-green-900" 
+                  : "text-gray-600 hover:text-green-900"
+              }`}
             >
               <ShoppingBag
                 size={22}
@@ -142,7 +167,11 @@ const Navbar = () => {
             </Link>
             <Link
               to="/chat"
-              className="flex items-center text-gray-600 hover:text-green-900 transition-colors group relative"
+              className={`flex items-center transition-colors group relative ${
+                isActiveLink("/chat") 
+                  ? "text-green-900" 
+                  : "text-gray-600 hover:text-green-900"
+              }`}
             >
               <MessageCircleMore
                 size={22}
@@ -157,27 +186,46 @@ const Navbar = () => {
       <div className="hidden lg:block border-t border-gray-100 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center space-x-10 py-4">
-            {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => (
-              <Link
-                key={item}
-                to={`/${item.toLowerCase()}`}
-                className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
-              >
-                {item.replace("-", " ")}
-              </Link>
-            ))}
+            {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => {
+              const path = `/${item.toLowerCase()}`;
+              const isActive = isActiveLink(path);
+              
+              return (
+                <Link
+                  key={item}
+                  to={path}
+                  className={`uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-green-900 after:transition-all ${
+                    isActive 
+                      ? "text-green-900 after:w-full" 
+                      : "text-gray-500 hover:text-green-900 after:w-0 hover:after:w-full"
+                  }`}
+                >
+                  {item.replace("-", " ")}
+                </Link>
+              );
+            })}
+            
             {isAuthenticated && user?.role === "vendor" && (
               <Link
                 to="/vendor/products"
-                className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
+                className={`uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-green-900 after:transition-all ${
+                  isVendorProductsActive
+                    ? "text-green-900 after:w-full"
+                    : "text-gray-500 hover:text-green-900 after:w-0 hover:after:w-full"
+                }`}
               >
                 Your Listings
               </Link>
             )}
+            
             {isAuthenticated && user?.role === "vendor" && (
               <Link
                 to="/vendor/categories"
-                className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
+                className={`uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-green-900 after:transition-all ${
+                  isVendorCategoriesActive
+                    ? "text-green-900 after:w-full"
+                    : "text-gray-500 hover:text-green-900 after:w-0 hover:after:w-full"
+                }`}
               >
                 Categories
               </Link>
@@ -188,7 +236,7 @@ const Navbar = () => {
 
       {/* Mobile Menu (Drawer) */}
       <div
-        className={`lg:hidden fixed inset-0 z-[110] transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
+        className={`lg:hidden fixed inset-0 z-110 transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}`}
       >
         {/* Backdrop */}
         <div
@@ -233,32 +281,60 @@ const Navbar = () => {
               <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-4 px-3">
                 Categories
               </p>
-              {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => (
-                <Link
-                  key={item}
-                  to={`/${item.toLowerCase()}`}
-                  className="block px-3 py-3.5 text-base font-medium text-gray-700 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.replace("-", " ")}
-                </Link>
-              ))}
+              {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => {
+                const path = `/${item.toLowerCase()}`;
+                const isActive = isActiveLink(path);
+                
+                return (
+                  <Link
+                    key={item}
+                    to={path}
+                    className={`block px-3 py-3.5 text-base font-medium rounded-lg transition-colors border-b border-gray-50 last:border-0 ${
+                      isActive
+                        ? "text-green-900 bg-green-50"
+                        : "text-gray-700 hover:text-green-900 hover:bg-green-50"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.replace("-", " ")}
+                    {isActive && (
+                      <span className="ml-2 text-green-600 text-xs">•</span>
+                    )}
+                  </Link>
+                );
+              })}
+              
               {isAuthenticated && user?.role === "vendor" && (
                 <Link
                   to="/vendor/products"
-                  className="block px-3 py-3.5 text-base font-medium text-gray-700 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
+                  className={`block px-3 py-3.5 text-base font-medium rounded-lg transition-colors border-b border-gray-50 last:border-0 ${
+                    isVendorProductsActive
+                      ? "text-green-900 bg-green-50"
+                      : "text-gray-700 hover:text-green-900 hover:bg-green-50"
+                  }`}
                   onClick={() => setIsOpen(false)}
                 >
                   Your Listings
+                  {isVendorProductsActive && (
+                    <span className="ml-2 text-green-600 text-xs">•</span>
+                  )}
                 </Link>
               )}
+              
               {isAuthenticated && user?.role === "vendor" && (
                 <Link
                   to="/vendor/categories"
-                  className="block px-3 py-3.5 text-base font-medium text-gray-700 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
+                  className={`block px-3 py-3.5 text-base font-medium rounded-lg transition-colors border-b border-gray-50 last:border-0 ${
+                    isVendorCategoriesActive
+                      ? "text-green-900 bg-green-50"
+                      : "text-gray-700 hover:text-green-900 hover:bg-green-50"
+                  }`}
                   onClick={() => setIsOpen(false)}
                 >
                   Manage Categories
+                  {isVendorCategoriesActive && (
+                    <span className="ml-2 text-green-600 text-xs">•</span>
+                  )}
                 </Link>
               )}
             </div>
@@ -271,18 +347,32 @@ const Navbar = () => {
               <Link
                 to="/account"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center px-3 py-3 text-gray-700 hover:text-green-900 rounded-lg hover:bg-green-50 transition-colors"
+                className={`flex items-center px-3 py-3 rounded-lg transition-colors ${
+                  isActiveLink("/account")
+                    ? "text-green-900 bg-green-50"
+                    : "text-gray-700 hover:text-green-900 hover:bg-green-50"
+                }`}
               >
-                <User size={20} className="mr-3 text-gray-400" />
+                <User size={20} className={`mr-3 ${isActiveLink("/account") ? "text-green-500" : "text-gray-400"}`} />
                 <span className="font-medium">My Account</span>
+                {isActiveLink("/account") && (
+                  <span className="ml-auto text-green-600 text-xs">Active</span>
+                )}
               </Link>
               <Link
                 to="/wishlist"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center px-3 py-3 text-gray-700 hover:text-green-900 rounded-lg hover:bg-green-50 transition-colors"
+                className={`flex items-center px-3 py-3 rounded-lg transition-colors ${
+                  isActiveLink("/wishlist")
+                    ? "text-green-900 bg-green-50"
+                    : "text-gray-700 hover:text-green-900 hover:bg-green-50"
+                }`}
               >
-                <Heart size={20} className="mr-3 text-gray-400" />
+                <Heart size={20} className={`mr-3 ${isActiveLink("/wishlist") ? "text-green-500" : "text-gray-400"}`} />
                 <span className="font-medium">Wishlist</span>
+                {isActiveLink("/wishlist") && (
+                  <span className="ml-auto text-green-600 text-xs">Active</span>
+                )}
               </Link>
             </div>
           </div>

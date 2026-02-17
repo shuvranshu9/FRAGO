@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import BrandCard from "../components/brand/BrandCard";
 import perfumeImage from "../assets/brands/perfume.png";
 
@@ -93,39 +93,8 @@ const MOCK_BRANDS = [
 ];
 
 const BrandsPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredBrands, setFilteredBrands] = useState(MOCK_BRANDS);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-      window.scrollTo(0, 0);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const results = MOCK_BRANDS.filter((brand) =>
-      brand.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-    setFilteredBrands(results);
-  }, [searchTerm]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-          <p className="text-xs uppercase tracking-widest text-gray-400 font-medium animate-pulse">
-            Discovering Houses...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  const [filteredBrands] = useState(MOCK_BRANDS);
+  
   return (
     <div className="bg-white min-h-screen">
       {/* Page Header */}
