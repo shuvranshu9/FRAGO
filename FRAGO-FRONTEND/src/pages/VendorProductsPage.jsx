@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit2, Trash2, Package, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -16,17 +16,13 @@ const VendorProductsPage = () => {
   });
   const { token } = useAuth();
 
-  useEffect(() => {
-    fetchVendorProducts();
-  }, []);
-
-  const fetchVendorProducts = async () => {
+  const fetchVendorProducts = useCallback(async () => {
     try {
       const response = await axios.get(
         "http://localhost:8000/api/perfume/vendor",
         {
           headers: { Authorization: `Bearer ${token}` },
-        },
+        }
       );
       setProducts(response.data);
     } catch (error) {
@@ -35,7 +31,11 @@ const VendorProductsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchVendorProducts();
+  }, [fetchVendorProducts]);
 
   const handleDeleteClick = (product) => {
     setDeleteModal({ isOpen: true, product });

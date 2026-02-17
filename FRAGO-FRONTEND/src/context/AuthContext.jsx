@@ -1,23 +1,17 @@
-import { createContext, useContext, useState, useEffect } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState } from "react";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Load user and token from localStorage on mount
+  const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-    }
-    setLoading(false);
-  }, []);
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem("token") || null;
+  });
 
   const login = (userData, tokenData) => {
     setUser(userData);
@@ -33,12 +27,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
   };
 
-  const isAuthenticated = !!token;
+  const value = {
+    user,
+    token,
+    login,
+    logout,
+    isAuthenticated: !!token,
+  };
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, loading, login, logout, isAuthenticated }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -47,7 +45,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used inside AuthProvider");
   }
   return context;
 };

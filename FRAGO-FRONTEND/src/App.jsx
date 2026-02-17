@@ -13,6 +13,7 @@ import AccountPage from "./pages/AccountPage.jsx";
 import VendorProductsPage from "./pages/VendorProductsPage.jsx";
 import VendorProductFormPage from "./pages/VendorProductFormPage.jsx";
 import VendorCategoriesPage from "./pages/VendorCategoriesPage.jsx";
+import BrandsPage from "./pages/BrandsPage.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
+          <Route path="/brands" element={<BrandsPage />} />
 
           {/* Protected routes within MainLayout */}
           <Route element={<ProtectedRoute />}>

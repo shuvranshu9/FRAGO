@@ -74,12 +74,7 @@ function ResetPasswordForm() {
         confirm_password: confirmPassword,
       };
 
-      const res = await api.post("/auth/reset-password", {
-        email,
-        code,
-        new_password: newPassword,
-        confirm_password: confirmPassword,
-      });
+      const res = await api.post("/auth/reset-password", payload);
 
       toast.success(res.data.message || "Password reset successful");
       navigate("/login");

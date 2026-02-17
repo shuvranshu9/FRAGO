@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -14,16 +14,10 @@ const VendorProductFormPage = () => {
   const [initialData, setInitialData] = useState(null);
   const [fetching, setFetching] = useState(!!id);
 
-  useEffect(() => {
-    if (id) {
-      fetchProduct();
-    }
-  }, [id]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/perfume/${id}`,
+        `http://localhost:8000/api/perfume/${id}`
       );
       setInitialData(response.data);
     } catch (error) {
@@ -32,7 +26,13 @@ const VendorProductFormPage = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchProduct();
+    }
+  }, [id, fetchProduct]);
 
   const handleSubmit = async (formData) => {
     setLoading(true);
