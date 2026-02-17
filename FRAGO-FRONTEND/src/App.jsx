@@ -16,11 +16,14 @@ import VendorCategoriesPage from "./pages/VendorCategoriesPage.jsx";
 import BrandsPage from "./pages/BrandsPage.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
+import ScrollToTop from "./components/global/ScrollToTop.jsx";
 
 export default function App() {
   return (
     <AuthProvider>
+      <ScrollToTop />
       <Routes>
+
         {/* Public routes within MainLayout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
