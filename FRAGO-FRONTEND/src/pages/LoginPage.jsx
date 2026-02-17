@@ -15,7 +15,7 @@ export default function LoginPage() {
           <img
             src={LogoImg}
             alt="FRAGO Logo"
-            className="h-80 object-contain scale-120"
+            className="h-60 object-contain scale-120"
           />
         </div>
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
           <img
             src={LogoImg}
             alt="FRAGO Logo"
-            className="max-w-lg w-full object-contain"
+            className="max-w-md w-full object-contain"
           />
         </div>
       </div>
@@ -98,10 +98,10 @@ function LoginForm() {
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-normal md:font-semibold text-gray-900">
+        <h1 className="text-2xl font-normal md:font-semibold text-gray-900">
           Sign in to FRAGO
         </h1>
-        <p className="mt-1 md:mt-2 text-sm text-gray-600">
+        <p className="mt-1 md:mt-2 text-xs md:text-sm text-gray-600">
           Enter your credentials to access your account
         </p>
       </div>
@@ -129,14 +129,14 @@ function LoginForm() {
               placeholder="••••••••"
               required
               className="
-                                w-full px-4 py-3 pr-12
-                                border border-gray-300
-                                rounded-xl
-                                focus:outline-none
-                                focus:ring-2
-                                focus:ring-green-600
-                                transition
-                            "
+                  w-full px-4 py-3 pr-12
+                  border border-gray-300
+                  rounded-xl
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-green-600
+                  transition
+              "
             />
             <button
               type="button"
@@ -198,14 +198,14 @@ function InputField({ label, type, value, onChange, placeholder }) {
         placeholder={placeholder}
         required
         className="
-                    w-full px-4 py-3
-                    border border-gray-300
-                    rounded-xl
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-green-600
-                    transition
-                "
+            w-full px-4 py-3
+            border border-gray-300
+            rounded-xl
+            focus:outline-none
+            focus:ring-2
+            focus:ring-green-600
+            transition
+        "
       />
     </div>
   );

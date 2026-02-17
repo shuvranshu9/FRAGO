@@ -3,7 +3,6 @@ import { Eye, EyeOff } from "lucide-react";
 import LogoImg from "../assets/FRAGO.png";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
-
 import axios from 'axios';
 
 const api = axios.create({
