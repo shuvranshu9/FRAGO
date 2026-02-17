@@ -11,6 +11,16 @@ export const createCategoryController = async (req, res) => {
       });
     }
 
+    // Check for existing category by name
+    const existing = await Category.getCategoryByName(category_name);
+    if (existing) {
+      return res.status(200).json({
+        message: "Category already exists",
+        category_id: existing.category_id,
+        isExisting: true,
+      });
+    }
+
     const category_id = await Category.createCategory({
       category_name,
       description,
@@ -29,9 +39,9 @@ export const createCategoryController = async (req, res) => {
 export const getAllCategoriesController = async (req, res) => {
   try {
     const data = await Category.getAllCategories();
-    res.json(data);
+    res.json(data || []);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json([]);
   }
 };
 
@@ -39,14 +49,9 @@ export const getAllCategoriesController = async (req, res) => {
 export const getCategoryByIdController = async (req, res) => {
   try {
     const data = await Category.getCategoryById(req.params.id);
-
-    if (!data) {
-      return res.status(404).json({ message: "Category not found" });
-    }
-
-    res.json(data);
+    res.status(200).json(data || null);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json(null);
   }
 };
 

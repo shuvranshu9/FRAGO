@@ -2,7 +2,13 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import pool from "./src/config/db.js";
-import authRoutes from "./src/modules/auth/auth.routes.js"
+import authRoutes from "./src/modules/auth/auth.routes.js";
+import perfumeRoutes from "./src/modules/perfume/perfume.routes.js";
+import categoryRoutes from "./src/modules/category/category.routes.js";
+import bookmarkRoutes from "./src/modules/bookmark/bookmark.routes.js";
+import cartRoutes from "./src/modules/cart/cart.routes.js";
+import recommendRoutes from "./src/modules/recommend/recommend.routes.js";
+import orderRoutes from "./src/modules/order/order.routes.js";
 
 dotenv.config();
 
@@ -11,9 +17,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-const allowedOrigins = [
-  "http://localhost:5173"
-];
+const allowedOrigins = ["http://localhost:5173"];
 
 app.use(
   cors({
@@ -25,13 +29,17 @@ app.use(
       }
     },
     credentials: true,
-  })
+  }),
 );
-
 
 // Routes
 app.use("/api/auth", authRoutes);
-
+app.use("/api/perfume", perfumeRoutes);
+app.use("/api/category", categoryRoutes);
+app.use("/api/bookmark", bookmarkRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/recommend", recommendRoutes);
+app.use("/api/order", orderRoutes);
 
 app.get("/", (req, res) => {
   res.send("FRAGO Backend Running");

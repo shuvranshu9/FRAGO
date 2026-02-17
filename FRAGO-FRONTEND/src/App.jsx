@@ -10,6 +10,9 @@ import HomePage from "./pages/HomePage.jsx";
 import AboutUsPage from "./pages/AboutUsPage.jsx";
 import ContactUsPage from "./pages/ContactUsPage.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
+import VendorProductsPage from "./pages/VendorProductsPage.jsx";
+import VendorProductFormPage from "./pages/VendorProductFormPage.jsx";
+import VendorCategoriesPage from "./pages/VendorCategoriesPage.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
 
@@ -29,6 +32,23 @@ export default function App() {
             <Route path="/wishlist" element={<div>Wishlist Page</div>} />
             <Route path="/chat" element={<div>Chat Page</div>} />
             <Route path="/cart" element={<div>Cart Page</div>} />
+          </Route>
+
+          {/* Vendor Specific Routes */}
+          <Route element={<ProtectedRoute allowedRoles={["vendor"]} />}>
+            <Route path="/vendor/products" element={<VendorProductsPage />} />
+            <Route
+              path="/vendor/products/add"
+              element={<VendorProductFormPage />}
+            />
+            <Route
+              path="/vendor/products/edit/:id"
+              element={<VendorProductFormPage />}
+            />
+            <Route
+              path="/vendor/categories"
+              element={<VendorCategoriesPage />}
+            />
           </Route>
         </Route>
 

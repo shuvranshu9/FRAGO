@@ -23,7 +23,7 @@ const ContactUsPage = () => {
                 Visit Our Store
               </h2>
               <div
-                className="w-16 h-[2px]"
+                className="w-16 h-0.5"
                 style={{ backgroundColor: theme.colors.primary }}
               />
               <p className="text-gray-600 font-light leading-relaxed max-w-md">

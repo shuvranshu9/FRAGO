@@ -10,8 +10,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Logo from "../../assets/LOGO.png";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
+  const { user, isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -164,6 +166,22 @@ const Navbar = () => {
                 {item.replace("-", " ")}
               </Link>
             ))}
+            {isAuthenticated && user?.role === "vendor" && (
+              <Link
+                to="/vendor/products"
+                className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
+              >
+                Your Listings
+              </Link>
+            )}
+            {isAuthenticated && user?.role === "vendor" && (
+              <Link
+                to="/vendor/categories"
+                className="text-gray-500 hover:text-green-900 uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-green-900 after:transition-all hover:after:w-full"
+              >
+                Categories
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -225,6 +243,24 @@ const Navbar = () => {
                   {item.replace("-", " ")}
                 </Link>
               ))}
+              {isAuthenticated && user?.role === "vendor" && (
+                <Link
+                  to="/vendor/products"
+                  className="block px-3 py-3.5 text-base font-medium text-gray-700 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Your Listings
+                </Link>
+              )}
+              {isAuthenticated && user?.role === "vendor" && (
+                <Link
+                  to="/vendor/categories"
+                  className="block px-3 py-3.5 text-base font-medium text-gray-700 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors border-b border-gray-50 last:border-0"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Manage Categories
+                </Link>
+              )}
             </div>
 
             {/* Account Links */}
