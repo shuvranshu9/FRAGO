@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, Plus, Trash2, Upload, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -14,19 +14,18 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
     scent_type: "",
     mood: "",
     origin: "",
-    ...initialData,
   });
 
-  const [variants, setVariants] = useState(
-    initialData?.variants || [{ size_ml: "", price: "", stock_quantity: "" }],
-  );
+  const [variants, setVariants] = useState([
+    { size_ml: "", price: "", stock_quantity: "" },
+  ]);
   const [images, setImages] = useState([]);
-  const [existingImages, setExistingImages] = useState(
-    initialData?.images || [],
-  );
+  const [existingImages, setExistingImages] = useState([]);
   const [categories, setCategories] = useState([]);
   const [previews, setPreviews] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
+  // Initialize form with initialData when component mounts or initialData changes
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -38,17 +37,21 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
         mood: initialData.mood || "",
         origin: initialData.origin || "",
       });
+
       setVariants(
         initialData.variants?.length > 0
           ? initialData.variants
           : [{ size_ml: "", price: "", stock_quantity: "" }],
       );
+
       setExistingImages(initialData.images || []);
     }
-    fetchCategories();
   }, [initialData]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
+    if (isLoadingCategories) return;
+
+    setIsLoadingCategories(true);
     try {
       const response = await axios.get("http://localhost:8000/api/category");
       let fetchedCategories = response.data;
@@ -66,7 +69,6 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
         "Leather",
       ];
 
-      // Check for missing categories (case-insensitive)
       const existingNames = fetchedCategories.map((c) =>
         c.category_name.toLowerCase().trim(),
       );
@@ -75,39 +77,29 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
         (cat) => !existingNames.includes(cat.toLowerCase().trim()),
       );
 
-      // Only seed if there are missing categories AND we have a token
       if (missingCategories.length > 0 && token) {
-        // Use a flag in localStorage to prevent multiple seeding attempts
         const seedingAttempted = localStorage.getItem("categories_seeded");
 
         if (!seedingAttempted) {
-          // Set flag immediately to prevent parallel attempts
           localStorage.setItem("categories_seeded", "true");
 
-          // Seed missing categories
-          await Promise.all(
-            missingCategories.map((cat) =>
-              axios
-                .post(
-                  "http://localhost:8000/api/category",
-                  {
-                    category_name: cat,
-                    description: `${cat} fragrance family`,
-                  },
-                  { headers: { Authorization: `Bearer ${token}` } },
-                )
-                .catch((err) => {
-                  // If error is 409 (Conflict), category already exists - ignore
-                  if (err.response?.status === 409) {
-                    console.log(`Category ${cat} already exists`);
-                  } else {
-                    console.error(`Error creating category ${cat}:`, err);
-                  }
-                }),
-            ),
-          );
+          for (const cat of missingCategories) {
+            try {
+              await axios.post(
+                "http://localhost:8000/api/category",
+                {
+                  category_name: cat,
+                  description: `${cat} fragrance family`,
+                },
+                { headers: { Authorization: `Bearer ${token}` } },
+              );
+            } catch (err) {
+              if (err.response?.status !== 409) {
+                console.error(`Error creating category ${cat}:`, err);
+              }
+            }
+          }
 
-          // Re-fetch after seeding to get full list with IDs
           const secondResponse = await axios.get(
             "http://localhost:8000/api/category",
           );
@@ -118,8 +110,16 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       setCategories(fetchedCategories);
     } catch (error) {
       console.error("Error fetching/seeding categories:", error);
+      toast.error("Failed to load categories");
+    } finally {
+      setIsLoadingCategories(false);
     }
-  };
+  }, [token, isLoadingCategories]);
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -287,7 +287,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10 min-h-30"
                 placeholder="Describe your fragrance story..."
-              ></textarea>
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
