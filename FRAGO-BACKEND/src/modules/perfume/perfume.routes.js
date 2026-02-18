@@ -26,9 +26,14 @@ router.post(
 
 router.get("/", getAllPerfumesController);
 router.get("/vendor", verifyToken, requireVendor, getVendorPerfumesController);
-router.get("/:id", getPerfumeByIdController);
-
-router.put("/:id", verifyToken, requireVendor, updatePerfumeController);
+router.get("/:id", verifyToken, getPerfumeByIdController);
+router.put(
+  "/:id",
+  verifyToken,
+  requireVendor,
+  upload.array("images", 5),
+  updatePerfumeController,
+);
 router.delete("/:id", verifyToken, requireVendor, deletePerfumeController);
 
 router.delete(

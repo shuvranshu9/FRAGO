@@ -1,29 +1,28 @@
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import LoginPage from "./pages/LoginPage.jsx";
-import RegisterPage from "./pages/RegisterPage.jsx";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
-import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
-import VerifyOTPPage from "./pages/VerifyOtp.jsx";
-import MainLayout from "./layout/MainLayout.jsx";
-import HomePage from "./pages/HomePage.jsx";
-import AboutUsPage from "./pages/AboutUsPage.jsx";
-import ContactUsPage from "./pages/ContactUsPage.jsx";
-import AccountPage from "./pages/AccountPage.jsx";
-import VendorProductsPage from "./pages/VendorProductsPage.jsx";
-import VendorProductFormPage from "./pages/VendorProductFormPage.jsx";
-import VendorCategoriesPage from "./pages/VendorCategoriesPage.jsx";
-import BrandsPage from "./pages/BrandsPage.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import MainLayout from "./layout/MainLayout.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
 import ScrollToTop from "./components/global/ScrollToTop.jsx";
+import LoginPage from "./pages/auth/LoginPage.jsx";
+import RegisterPage from "./pages/auth/RegisterPage.jsx";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage.jsx";
+import VerifyOTPPage from "./pages/auth/VerifyOTPPage.jsx";
+import BrandsPage from "./pages/global/BrandsPage.jsx";
+import HomePage from "./pages/global/HomePage.jsx";
+import AboutUsPage from "./pages/global/AboutUsPage.jsx";
+import ContactUsPage from "./pages/global/ContactUsPage.jsx";
+import AccountPage from "./pages/global/AccountPage.jsx";
+import VendorProductsPage from "./pages/vendor/VendorProductsPage.jsx";
+import VendorProductFormPage from "./pages/vendor/VendorProductFormPage.jsx";
+import VendorCategoriesPage from "./pages/vendor/VendorCategoriesPage.jsx";
 
 export default function App() {
   return (
     <AuthProvider>
       <ScrollToTop />
       <Routes>
-
         {/* Public routes within MainLayout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />

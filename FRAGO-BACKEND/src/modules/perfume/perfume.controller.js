@@ -68,7 +68,6 @@ export const getAllPerfumesController = async (req, res) => {
 export const getVendorPerfumesController = async (req, res) => {
   try {
     const vendor_id = req.user.userID;
-    console.log("REQ.USER:", req.user);
     const data = await Perfume.getPerfumesByVendor(vendor_id);
     res.json(data || []);
   } catch (err) {
@@ -78,17 +77,80 @@ export const getVendorPerfumesController = async (req, res) => {
 
 export const getPerfumeByIdController = async (req, res) => {
   try {
-    const data = await Perfume.getPerfumeById(req.params.id);
-    res.status(200).json(data || null);
+    const perfume = await Perfume.getPerfumeById(req.params.id);
+
+    if (!perfume) {
+      return res.status(200).json({
+        success: false,
+        message: "Perfume not found",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: perfume,
+    });
   } catch (err) {
-    res.status(200).json(null);
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch perfume details",
+      error: err.message,
+    });
   }
 };
 
 export const updatePerfumeController = async (req, res) => {
-  const updated = await Perfume.updatePerfume(req.params.id, req.body);
-  if (!updated) return res.status(404).json({ message: "Not found" });
-  res.json({ message: "Updated successfully" });
+  try {
+    const { id } = req.params;
+    const images = [];
+
+    if (!req.body) {
+      return res.status(400).json({ message: "Request body is missing" });
+    }
+
+    const perfumeName = req.body.name;
+    // We only need folder name if there are new files to upload
+    if (req.files?.length && perfumeName) {
+      const folderName = perfumeName
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_]/g, "");
+
+      const uploadFolder = `perfumes/${folderName}`;
+
+      const uploadFromBuffer = (fileBuffer) => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: uploadFolder },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            },
+          );
+          uploadStream.end(fileBuffer);
+        });
+      };
+
+      for (const file of req.files) {
+        const result = await uploadFromBuffer(file.buffer);
+        images.push(result.secure_url);
+      }
+    }
+
+    const updated = await Perfume.updatePerfume(id, {
+      ...req.body,
+      variants: req.body.variants, // Already stringified or array depending on middleware
+      images: images, // New images only
+    });
+
+    if (!updated) return res.status(404).json({ message: "Not found" });
+    res.json({ message: "Updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 export const deletePerfumeController = async (req, res) => {

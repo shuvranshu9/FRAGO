@@ -111,25 +111,25 @@ export const getPerfumesByVendor = async (vendor_id) => {
   const [rows] = await pool.query(
     `
     SELECT 
-    p.perfume_id,
-    p.name,
-    p.brand,
-    p.description,
-    p.scent_type,
-    p.mood,
-    p.origin,
-    p.vendor_id,
-    p.category_id,
-    pi.image_url,
-    pv.variant_id,
-    pv.size_ml,
-    pv.price,
-    pv.stock_quantity
-FROM perfume p
-LEFT JOIN perfume_image pi ON p.perfume_id = pi.perfume_id
-LEFT JOIN perfume_variant pv ON p.perfume_id = pv.perfume_id
-WHERE p.vendor_id = ? AND p.is_active = 1
-ORDER BY p.created_at DESC
+      p.perfume_id,
+      p.name,
+      p.brand,
+      p.description,
+      p.scent_type,
+      p.mood,
+      p.origin,
+      p.vendor_id,
+      p.category_id,
+      (
+        SELECT pi.image_url
+        FROM perfume_image pi
+        WHERE pi.perfume_id = p.perfume_id
+        ORDER BY pi.image_id ASC
+        LIMIT 1
+      ) AS image_url
+    FROM perfume p
+    WHERE p.vendor_id = ? AND p.is_active = 1
+    ORDER BY p.created_at DESC
     `,
     [vendor_id],
   );
@@ -140,57 +140,199 @@ ORDER BY p.created_at DESC
 export const getPerfumeById = async (perfume_id) => {
   const [rows] = await pool.query(
     `
-    SELECT 
+        SELECT 
       p.*,
-      JSON_ARRAYAGG(DISTINCT pi.image_url) AS images,
-      JSON_ARRAYAGG(
-        DISTINCT JSON_OBJECT(
-          'variant_id', pv.variant_id,
-          'size_ml', pv.size_ml,
-          'price', pv.price,
-          'stock_quantity', pv.stock_quantity
+
+      (
+        SELECT COALESCE(JSON_ARRAYAGG(pi.image_url), JSON_ARRAY())
+        FROM perfume_image pi
+        WHERE pi.perfume_id = p.perfume_id
+      ) AS images,
+
+      (
+        SELECT COALESCE(
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'variant_id', pv.variant_id,
+              'size_ml', pv.size_ml,
+              'price', pv.price,
+              'stock_quantity', pv.stock_quantity
+            )
+          ),
+          JSON_ARRAY()
         )
+        FROM perfume_variant pv
+        WHERE pv.perfume_id = p.perfume_id
       ) AS variants
+
     FROM perfume p
-    LEFT JOIN perfume_image pi ON p.perfume_id = pi.perfume_id
-    LEFT JOIN perfume_variant pv ON p.perfume_id = pv.perfume_id
-    WHERE p.perfume_id = ?
-    GROUP BY p.perfume_id
+    WHERE p.perfume_id = ?;
     `,
     [perfume_id],
   );
 
-  return rows[0];
+  return rows.length ? rows[0] : null;
 };
 
 export const updatePerfume = async (perfume_id, data) => {
-  const [result] = await pool.query(
-    `
-    UPDATE perfume
-    SET name = ?, brand = ?, description = ?, scent_type = ?, mood = ?, origin = ?
-    WHERE perfume_id = ?
-    `,
-    [
-      data.name,
-      data.brand,
-      data.description,
-      data.scent_type,
-      data.mood,
-      data.origin,
-      perfume_id,
-    ],
-  );
+  const conn = await pool.getConnection();
 
-  return result.affectedRows;
+  try {
+    await conn.beginTransaction();
+
+    // Update basic info
+    const [result] = await conn.query(
+      `
+      UPDATE perfume
+      SET name = ?, brand = ?, description = ?, scent_type = ?, mood = ?, origin = ?, category_id = ?
+      WHERE perfume_id = ?
+      `,
+      [
+        data.name,
+        data.brand,
+        data.description,
+        data.scent_type,
+        data.mood,
+        data.origin,
+        data.category_id,
+        perfume_id,
+      ],
+    );
+
+    // Handle variants
+    if (data.variants) {
+      const variants = JSON.parse(
+        typeof data.variants === "string" ? data.variants : "[]",
+      );
+      await conn.query("DELETE FROM perfume_variant WHERE perfume_id = ?", [
+        perfume_id,
+      ]);
+
+      if (variants.length > 0) {
+        const variantValues = variants.map((v) => [
+          perfume_id,
+          v.size_ml,
+          v.price,
+          v.stock_quantity,
+        ]);
+
+        await conn.query(
+          `
+          INSERT INTO perfume_variant
+          (perfume_id, size_ml, price, stock_quantity)
+          VALUES ?
+          `,
+          [variantValues],
+        );
+      }
+    }
+
+    // Handle images
+    const [currentImages] = await conn.query(
+      "SELECT image_url FROM perfume_image WHERE perfume_id = ?",
+      [perfume_id],
+    );
+
+    const keptImages = JSON.parse(
+      typeof data.existingImages === "string" ? data.existingImages : "[]",
+    );
+
+    // Identify images to delete from DB and Cloudinary
+    const imagesToDelete = currentImages.filter(
+      (img) => !keptImages.includes(img.image_url),
+    );
+
+    if (imagesToDelete.length > 0) {
+      const urlsToDelete = imagesToDelete.map((img) => img.image_url);
+      await conn.query(
+        "DELETE FROM perfume_image WHERE perfume_id = ? AND image_url IN (?)",
+        [perfume_id, urlsToDelete],
+      );
+      for (const url of urlsToDelete) {
+        await deleteFromCloudinaryByUrl(url);
+      }
+    }
+
+    // Add new images
+    if (data.images && data.images.length > 0) {
+      const imageValues = data.images.map((url) => [perfume_id, url]);
+      await conn.query(
+        `
+        INSERT INTO perfume_image
+        (perfume_id, image_url)
+        VALUES ?
+        `,
+        [imageValues],
+      );
+    }
+
+    await conn.commit();
+    return result.affectedRows;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 };
 
 export const deletePerfume = async (perfume_id) => {
-  const [result] = await pool.query(
-    `UPDATE perfume SET is_active = 0 WHERE perfume_id = ?`,
-    [perfume_id],
-  );
+  const conn = await pool.getConnection();
 
-  return result.affectedRows;
+  try {
+    // Get all images associated with the perfume
+    const [images] = await conn.query(
+      "SELECT image_url FROM perfume_image WHERE perfume_id = ?",
+      [perfume_id],
+    );
+
+    await conn.beginTransaction();
+
+    // Delete from bookmark
+    await conn.query("DELETE FROM bookmark WHERE perfume_id = ?", [perfume_id]);
+
+    // Delete from cart_item
+    await conn.query(
+      `
+      DELETE ci FROM cart_item ci
+      JOIN perfume_variant pv ON ci.variant_id = pv.variant_id
+      WHERE pv.perfume_id = ?
+      `,
+      [perfume_id],
+    );
+
+    // Delete perfume_image
+    await conn.query("DELETE FROM perfume_image WHERE perfume_id = ?", [
+      perfume_id,
+    ]);
+
+    // Delete perfume_variant
+    await conn.query("DELETE FROM perfume_variant WHERE perfume_id = ?", [
+      perfume_id,
+    ]);
+
+    // Finally delete the perfume
+    const [result] = await conn.query(
+      "DELETE FROM perfume WHERE perfume_id = ?",
+      [perfume_id],
+    );
+
+    await conn.commit();
+
+    // Delete from Cloudinary after DB success
+    if (images.length > 0) {
+      for (const img of images) {
+        await deleteFromCloudinaryByUrl(img.image_url);
+      }
+    }
+
+    return result.affectedRows;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 };
 
 export const deletePerfumeImageByID = async (imageID) => {

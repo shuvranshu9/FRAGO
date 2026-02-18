@@ -28,8 +28,25 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
   const [previews, setPreviews] = useState([]);
 
   useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || "",
+        brand: initialData.brand || "",
+        description: initialData.description || "",
+        category_id: initialData.category_id || "",
+        scent_type: initialData.scent_type || "",
+        mood: initialData.mood || "",
+        origin: initialData.origin || "",
+      });
+      setVariants(
+        initialData.variants?.length > 0
+          ? initialData.variants
+          : [{ size_ml: "", price: "", stock_quantity: "" }],
+      );
+      setExistingImages(initialData.images || []);
+    }
     fetchCategories();
-  }, []);
+  }, [initialData]);
 
   const fetchCategories = async () => {
     try {
@@ -180,8 +197,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       submitData.append("images", image);
     });
 
-    // If editing, we might need to send info about which images to keep or delete
-    // For now, let's keep it simple and just send the new images
+    submitData.append("existingImages", JSON.stringify(existingImages));
 
     onSubmit(submitData);
   };
@@ -269,7 +285,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10 min-h-[120px]"
+                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10 min-h-30"
                 placeholder="Describe your fragrance story..."
               ></textarea>
             </div>
