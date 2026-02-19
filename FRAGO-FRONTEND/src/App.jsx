@@ -14,6 +14,8 @@ import HomePage from "./pages/global/HomePage.jsx";
 import AboutUsPage from "./pages/global/AboutUsPage.jsx";
 import ContactUsPage from "./pages/global/ContactUsPage.jsx";
 import AccountPage from "./pages/global/AccountPage.jsx";
+import ProductDetailsPage from "./pages/global/ProductDetailsPage.jsx";
+import PerfumesPage from "./pages/global/PerfumesPage.jsx";
 import VendorProductsPage from "./pages/vendor/VendorProductsPage.jsx";
 import VendorProductFormPage from "./pages/vendor/VendorProductFormPage.jsx";
 import VendorCategoriesPage from "./pages/vendor/VendorCategoriesPage.jsx";
@@ -29,6 +31,8 @@ export default function App() {
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/brands" element={<BrandsPage />} />
+          <Route path="/perfumes" element={<PerfumesPage />} />
+          <Route path="/product/:id" element={<ProductDetailsPage />} />
 
           {/* Protected routes within MainLayout */}
           <Route element={<ProtectedRoute />}>

@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit2, Trash2, Package, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import DeleteModal from "../../components/global/DeleteModal";
 
 const VendorProductsPage = () => {
+  const location = useLocation();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,7 +25,11 @@ const VendorProductsPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setProducts(response.data);
+      if (response.data.success) {
+        setProducts(response.data.data);
+      } else {
+        toast.error(response.data.message || "Failed to fetch products");
+      }
     } catch (error) {
       console.error("Error fetching vendor products:", error);
       toast.error("Failed to fetch products");
@@ -69,7 +74,7 @@ const VendorProductsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-16 pb-16 px-4 md:px-8">
+    <div className="min-h-screen bg-gray-50 pt-10 pb-10 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -141,17 +146,29 @@ const VendorProductsPage = () => {
                 className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow group"
               >
                 <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
-                  {product.image_url ? (
-                    <img
-                      src={product.image_url}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Package size={48} />
-                    </div>
-                  )}
+                  <Link
+                    to={`/product/${product.perfume_id}`}
+                    state={{ from: location.pathname }}
+                    className="block w-full h-full"
+                  >
+                    {product.images && product.images.length > 0 ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <Package size={48} />
+                      </div>
+                    )}
+                  </Link>
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Link
                       to={`/vendor/products/edit/${product.perfume_id}`}
@@ -173,9 +190,14 @@ const VendorProductsPage = () => {
                       <p className="text-[11px] uppercase tracking-widest text-gray-400 font-bold mb-1">
                         {product.brand}
                       </p>
-                      <h3 className="text-lg font-serif font-bold text-gray-900 group-hover:text-green-900 transition-colors">
-                        {product.name}
-                      </h3>
+                      <Link
+                        to={`/product/${product.perfume_id}`}
+                        state={{ from: location.pathname }}
+                      >
+                        <h3 className="text-lg font-serif font-bold text-gray-900 group-hover:text-green-900 transition-colors">
+                          {product.name}
+                        </h3>
+                      </Link>
                     </div>
                     <span className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
                       {product.scent_type || "Scent"}

@@ -2,37 +2,37 @@ import pool from "../../config/db.js";
 
 // Add a bookmark
 export const addBookmark = async (userId, perfumeId) => {
-    // Check if already bookmarked to avoid duplicates (though unique constraint is better)
-    const [existing] = await pool.query(
-        "SELECT bookmark_id FROM bookmark WHERE user_id = ? AND perfume_id = ?",
-        [userId, perfumeId]
-    );
+  // Check if already bookmarked to avoid duplicates
+  const [existing] = await pool.query(
+    "SELECT bookmark_id FROM bookmark WHERE user_id = ? AND perfume_id = ?",
+    [userId, perfumeId],
+  );
 
-    if (existing.length > 0) {
-        return existing[0].bookmark_id; // Return existing ID
-    }
+  if (existing.length > 0) {
+    return existing[0].bookmark_id; // Return existing ID
+  }
 
-    const [result] = await pool.query(
-        "INSERT INTO bookmark (user_id, perfume_id) VALUES (?, ?)",
-        [userId, perfumeId]
-    );
+  const [result] = await pool.query(
+    "INSERT INTO bookmark (user_id, perfume_id) VALUES (?, ?)",
+    [userId, perfumeId],
+  );
 
-    return result.insertId;
+  return result.insertId;
 };
 
 // Remove a bookmark
 export const removeBookmark = async (userId, perfumeId) => {
-    const [result] = await pool.query(
-        "DELETE FROM bookmark WHERE user_id = ? AND perfume_id = ?",
-        [userId, perfumeId]
-    );
-    return result.affectedRows;
+  const [result] = await pool.query(
+    "DELETE FROM bookmark WHERE user_id = ? AND perfume_id = ?",
+    [userId, perfumeId],
+  );
+  return result.affectedRows;
 };
 
 // Get all bookmarks for a user with perfume details
 export const getBookmarks = async (userId) => {
-    const [rows] = await pool.query(
-        `
+  const [rows] = await pool.query(
+    `
         SELECT 
             b.bookmark_id,
             b.created_at,
@@ -49,16 +49,16 @@ export const getBookmarks = async (userId) => {
         WHERE b.user_id = ?
         ORDER BY b.bookmark_id DESC
         `,
-        [userId]
-    );
-    return rows;
+    [userId],
+  );
+  return rows;
 };
 
 // Check if a specific perfume is bookmarked
 export const isBookmarked = async (userId, perfumeId) => {
-    const [rows] = await pool.query(
-        "SELECT 1 FROM bookmark WHERE user_id = ? AND perfume_id = ?",
-        [userId, perfumeId]
-    );
-    return rows.length > 0;
+  const [rows] = await pool.query(
+    "SELECT 1 FROM bookmark WHERE user_id = ? AND perfume_id = ?",
+    [userId, perfumeId],
+  );
+  return rows.length > 0;
 };

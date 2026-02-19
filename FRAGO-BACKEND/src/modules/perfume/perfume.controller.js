@@ -59,9 +59,16 @@ export const createPerfumeController = async (req, res) => {
 export const getAllPerfumesController = async (req, res) => {
   try {
     const data = await Perfume.getAllPerfumes();
-    res.json(data || []);
+    res.json({
+      success: true,
+      data: data || [],
+    });
   } catch (err) {
-    res.status(200).json([]);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch perfumes",
+      data: [],
+    });
   }
 };
 
@@ -69,9 +76,16 @@ export const getVendorPerfumesController = async (req, res) => {
   try {
     const vendor_id = req.user.userID;
     const data = await Perfume.getPerfumesByVendor(vendor_id);
-    res.json(data || []);
+    res.json({
+      success: true,
+      data: data || [],
+    });
   } catch (err) {
-    res.status(200).json([]);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch vendor perfumes",
+      data: [],
+    });
   }
 };
 
@@ -142,8 +156,8 @@ export const updatePerfumeController = async (req, res) => {
 
     const updated = await Perfume.updatePerfume(id, {
       ...req.body,
-      variants: req.body.variants, // Already stringified or array depending on middleware
-      images: images, // New images only
+      variants: req.body.variants,
+      images: images,
     });
 
     if (!updated) return res.status(404).json({ message: "Not found" });

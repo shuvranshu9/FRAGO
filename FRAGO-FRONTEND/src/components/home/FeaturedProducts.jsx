@@ -91,7 +91,7 @@ const FeaturedProducts = () => {
 
         <div className="text-center mt-16">
           <Link
-            to="/shop"
+            to="/perfumes"
             className="inline-block border-b border-gray-900 pb-1 text-xs uppercase tracking-widest text-gray-900 hover:text-green-900 hover:border-green-900 transition-all font-semibold"
           >
             View All Products

@@ -200,7 +200,7 @@ const VendorCategoriesPage = () => {
 
         {/* Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
             <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-serif font-bold text-gray-900">

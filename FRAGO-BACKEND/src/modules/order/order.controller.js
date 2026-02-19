@@ -1,7 +1,7 @@
 import * as OrderModel from "./order.model.js";
 import * as CartModel from "../cart/cart.model.js";
 
-// Checkout: Create order from cart
+// Create order from cart
 export const checkoutController = async (req, res) => {
   try {
     const userId = req.user.userID;
@@ -61,7 +61,7 @@ export const getMyOrdersController = async (req, res) => {
 // Get order details
 export const getOrderDetailsController = async (req, res) => {
   try {
-    const userId = req.user.userID; // For security check
+    const userId = req.user.userID;
     const { orderId } = req.params;
 
     const order = await OrderModel.getOrderById(orderId);

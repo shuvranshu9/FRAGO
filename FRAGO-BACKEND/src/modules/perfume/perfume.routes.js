@@ -26,7 +26,7 @@ router.post(
 
 router.get("/", getAllPerfumesController);
 router.get("/vendor", verifyToken, requireVendor, getVendorPerfumesController);
-router.get("/:id", verifyToken, getPerfumeByIdController);
+router.get("/:id", getPerfumeByIdController);
 router.put(
   "/:id",
   verifyToken,

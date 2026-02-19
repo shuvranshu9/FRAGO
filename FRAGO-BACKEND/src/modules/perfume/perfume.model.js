@@ -85,22 +85,36 @@ export const getAllPerfumes = async () => {
   const [rows] = await pool.query(
     `
     SELECT 
-      p.*,
-      JSON_ARRAYAGG(DISTINCT pi.image_url) AS images,
-      JSON_ARRAYAGG(
-        DISTINCT JSON_OBJECT(
-          'variant_id', pv.variant_id,
-          'size_ml', pv.size_ml,
-          'price', pv.price,
-          'stock_quantity', pv.stock_quantity
-        )
-      ) AS variants
-    FROM perfume p
-    LEFT JOIN perfume_image pi ON p.perfume_id = pi.perfume_id
-    LEFT JOIN perfume_variant pv ON p.perfume_id = pv.perfume_id
-    WHERE p.is_active = 1
-    GROUP BY p.perfume_id
-    ORDER BY p.created_at DESC
+        p.*,
+        COALESCE(img.images, JSON_ARRAY()) AS images,
+        COALESCE(var.variants, JSON_ARRAY()) AS variants
+      FROM perfume p
+
+      LEFT JOIN (
+        SELECT 
+          perfume_id,
+          JSON_ARRAYAGG(image_url) AS images
+        FROM perfume_image
+        GROUP BY perfume_id
+      ) img ON p.perfume_id = img.perfume_id
+
+      LEFT JOIN (
+        SELECT 
+          perfume_id,
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'variant_id', variant_id,
+              'size_ml', size_ml,
+              'price', price,
+              'stock_quantity', stock_quantity
+            )
+          ) AS variants
+        FROM perfume_variant
+        GROUP BY perfume_id
+      ) var ON p.perfume_id = var.perfume_id
+
+      WHERE p.is_active = 1
+      ORDER BY p.created_at DESC
     `,
   );
 
@@ -141,32 +155,31 @@ export const getPerfumeById = async (perfume_id) => {
   const [rows] = await pool.query(
     `
         SELECT 
-      p.*,
+          p.*,
+          (
+            SELECT COALESCE(JSON_ARRAYAGG(pi.image_url), JSON_ARRAY())
+            FROM perfume_image pi
+            WHERE pi.perfume_id = p.perfume_id
+          ) AS images,
 
-      (
-        SELECT COALESCE(JSON_ARRAYAGG(pi.image_url), JSON_ARRAY())
-        FROM perfume_image pi
-        WHERE pi.perfume_id = p.perfume_id
-      ) AS images,
-
-      (
-        SELECT COALESCE(
-          JSON_ARRAYAGG(
-            JSON_OBJECT(
-              'variant_id', pv.variant_id,
-              'size_ml', pv.size_ml,
-              'price', pv.price,
-              'stock_quantity', pv.stock_quantity
+          (
+            SELECT COALESCE(
+              JSON_ARRAYAGG(
+                JSON_OBJECT(
+                  'variant_id', pv.variant_id,
+                  'size_ml', pv.size_ml,
+                  'price', pv.price,
+                  'stock_quantity', pv.stock_quantity
+                )
+              ),
+              JSON_ARRAY()
             )
-          ),
-          JSON_ARRAY()
-        )
-        FROM perfume_variant pv
-        WHERE pv.perfume_id = p.perfume_id
-      ) AS variants
+            FROM perfume_variant pv
+            WHERE pv.perfume_id = p.perfume_id
+          ) AS variants
 
-    FROM perfume p
-    WHERE p.perfume_id = ?;
+        FROM perfume p
+        WHERE p.perfume_id = ?;
     `,
     [perfume_id],
   );

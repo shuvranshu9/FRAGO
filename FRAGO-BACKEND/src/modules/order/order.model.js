@@ -1,6 +1,6 @@
 import pool from "../../config/db.js";
 
-// Create a new order (Transactional)
+// Create a new order
 export const createOrder = async ({ userId, totalAmount, items }) => {
   const conn = await pool.getConnection();
   try {
@@ -92,7 +92,7 @@ export const updateOrderStatus = async (orderId, status) => {
   return result.affectedRows > 0;
 };
 
-// Get all orders (for admin/dashboard - optional but good to have)
+// Get all orders
 export const getAllOrders = async () => {
   const [rows] = await pool.query(
     `
