@@ -27,7 +27,7 @@ export default function AccountPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-[80vh] bg-gray-50 pt-0 pb-20 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[80vh] bg-gray-50 pt-10 pb-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header Profile Section */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

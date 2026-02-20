@@ -83,10 +83,10 @@ const PerfumesPage = () => {
   }, [products, searchTerm, filters, sortBy]);
 
   return (
-    <div className="min-h-screen bg-[#FCFBFA] pt-8 px-4 md:px-8">
+    <div className="min-h-screen bg-[#FCFBFA] pt-4 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Toolbar Section */}
-        <div className="flex flex-col md:flex-row gap-6 mb-4 items-center justify-between sticky top-[80px] z-40 bg-[#FCFBFA]/80 backdrop-blur-md py-4 transition-all duration-300">
+        <div className="flex flex-col md:flex-row gap-6 mb-4 items-center justify-between  top-[80px] z-40 bg-[#FCFBFA]/80 backdrop-blur-md py-4 transition-all duration-300">
           <div className="relative w-full md:w-[400px]">
             <Search
               className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
@@ -94,7 +94,7 @@ const PerfumesPage = () => {
             />
             <input
               type="text"
-              placeholder="Search by name or house..."
+              placeholder="Search by name or brands..."
               className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-full focus:ring-4 focus:ring-green-900/5 focus:border-green-900/20 transition-all shadow-sm text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

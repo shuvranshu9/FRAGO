@@ -61,8 +61,10 @@ const Navbar = () => {
   };
 
   // Get active state for specific vendor paths
-  const isVendorProductsActive = location.pathname.startsWith("/vendor/products");
-  const isVendorCategoriesActive = location.pathname.startsWith("/vendor/categories");
+  const isVendorProductsActive =
+    location.pathname.startsWith("/vendor/products");
+  const isVendorCategoriesActive =
+    location.pathname.startsWith("/vendor/categories");
 
   return (
     <nav
@@ -105,14 +107,14 @@ const Navbar = () => {
                   alt="FRAGO"
                   className="h-14 w-auto object-contain"
                 />
-                <span className="text-3xl md:text-4xl font-serif font-medium text-green-900 tracking-tight group-hover:opacity-90 transition-opacity">
+                <span className="text-2xl md:text-3xl font-serif font-medium text-green-900 tracking-tight group-hover:opacity-90 transition-opacity">
                   FRAGO
                   <span className="text-sm text-gray-500 ml-0.5 align-top">
                     .com
                   </span>
                 </span>
               </div>
-              <span className="text-[10px] sm:text-[11px] text-gray-400 tracking-[0.2em] font-medium mt-1 uppercase">
+              <span className="text-[8px] md:text-[10px] text-gray-400 tracking-[0.2em] font-medium mt-1 uppercase">
                 Trusted Online Since 2025
               </span>
             </Link>
@@ -128,8 +130,8 @@ const Navbar = () => {
             <Link
               to="/account"
               className={`hidden lg:flex items-center transition-colors group ${
-                isActiveLink("/account") 
-                  ? "text-green-900" 
+                isActiveLink("/account")
+                  ? "text-green-900"
                   : "text-gray-600 hover:text-green-900"
               }`}
             >
@@ -142,8 +144,8 @@ const Navbar = () => {
             <Link
               to="/wishlist"
               className={`hidden lg:flex items-center transition-colors group ${
-                isActiveLink("/wishlist") 
-                  ? "text-green-900" 
+                isActiveLink("/wishlist")
+                  ? "text-green-900"
                   : "text-gray-600 hover:text-green-900"
               }`}
             >
@@ -155,8 +157,8 @@ const Navbar = () => {
             <Link
               to="/cart"
               className={`flex items-center transition-colors group relative ${
-                isActiveLink("/cart") 
-                  ? "text-green-900" 
+                isActiveLink("/cart")
+                  ? "text-green-900"
                   : "text-gray-600 hover:text-green-900"
               }`}
             >
@@ -168,8 +170,8 @@ const Navbar = () => {
             <Link
               to="/chat"
               className={`flex items-center transition-colors group relative ${
-                isActiveLink("/chat") 
-                  ? "text-green-900" 
+                isActiveLink("/chat")
+                  ? "text-green-900"
                   : "text-gray-600 hover:text-green-900"
               }`}
             >
@@ -189,14 +191,14 @@ const Navbar = () => {
             {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => {
               const path = `/${item.toLowerCase()}`;
               const isActive = isActiveLink(path);
-              
+
               return (
                 <Link
                   key={item}
                   to={path}
-                  className={`uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-green-900 after:transition-all ${
-                    isActive 
-                      ? "text-green-900 after:w-full" 
+                  className={`uppercase text-[10px] md:text-[12px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-green-900 after:transition-all ${
+                    isActive
+                      ? "text-green-900 after:w-full"
                       : "text-gray-500 hover:text-green-900 after:w-0 hover:after:w-full"
                   }`}
                 >
@@ -204,7 +206,7 @@ const Navbar = () => {
                 </Link>
               );
             })}
-            
+
             {isAuthenticated && user?.role === "vendor" && (
               <Link
                 to="/vendor/products"
@@ -217,7 +219,7 @@ const Navbar = () => {
                 Your Listings
               </Link>
             )}
-            
+
             {isAuthenticated && user?.role === "vendor" && (
               <Link
                 to="/vendor/categories"
@@ -284,7 +286,7 @@ const Navbar = () => {
               {["Perfumes", "Brands", "About-Us", "Contact-Us"].map((item) => {
                 const path = `/${item.toLowerCase()}`;
                 const isActive = isActiveLink(path);
-                
+
                 return (
                   <Link
                     key={item}
@@ -303,7 +305,7 @@ const Navbar = () => {
                   </Link>
                 );
               })}
-              
+
               {isAuthenticated && user?.role === "vendor" && (
                 <Link
                   to="/vendor/products"
@@ -320,7 +322,7 @@ const Navbar = () => {
                   )}
                 </Link>
               )}
-              
+
               {isAuthenticated && user?.role === "vendor" && (
                 <Link
                   to="/vendor/categories"
@@ -353,7 +355,10 @@ const Navbar = () => {
                     : "text-gray-700 hover:text-green-900 hover:bg-green-50"
                 }`}
               >
-                <User size={20} className={`mr-3 ${isActiveLink("/account") ? "text-green-500" : "text-gray-400"}`} />
+                <User
+                  size={20}
+                  className={`mr-3 ${isActiveLink("/account") ? "text-green-500" : "text-gray-400"}`}
+                />
                 <span className="font-medium">My Account</span>
                 {isActiveLink("/account") && (
                   <span className="ml-auto text-green-600 text-xs">Active</span>
@@ -368,7 +373,10 @@ const Navbar = () => {
                     : "text-gray-700 hover:text-green-900 hover:bg-green-50"
                 }`}
               >
-                <Heart size={20} className={`mr-3 ${isActiveLink("/wishlist") ? "text-green-500" : "text-gray-400"}`} />
+                <Heart
+                  size={20}
+                  className={`mr-3 ${isActiveLink("/wishlist") ? "text-green-500" : "text-gray-400"}`}
+                />
                 <span className="font-medium">Wishlist</span>
                 {isActiveLink("/wishlist") && (
                   <span className="ml-auto text-green-600 text-xs">Active</span>

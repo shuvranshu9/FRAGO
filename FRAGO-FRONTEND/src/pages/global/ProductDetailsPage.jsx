@@ -92,7 +92,7 @@ const ProductDetailsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-6 pb-8 px-4 md:px-8">
+    <div className="min-h-screen bg-white pt-0 pb-8 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <Link
           to={from}
