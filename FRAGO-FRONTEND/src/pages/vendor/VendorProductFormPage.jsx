@@ -5,9 +5,11 @@ import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import ProductForm from "../../components/vendor/ProductForm";
 import { ArrowLeft } from "lucide-react";
+import { extractIdFromSlug } from "../../utils/slug";
 
 const VendorProductFormPage = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
+  const id = extractIdFromSlug(slug);
   const navigate = useNavigate();
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -77,7 +79,7 @@ const VendorProductFormPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28 pb-20 px-4 md:px-8">
+    <div className="min-h-screen bg-gray-50 pt-2 md:pt-14 pb-10 md:pb-14 px-4 md:px-8">
       <div className="max-w-5xl mx-auto">
         <button
           onClick={() => navigate("/vendor/products")}

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import DeleteModal from "../../components/global/DeleteModal";
+import { generateSlug } from "../../utils/slug";
 
 const VendorProductsPage = () => {
   const location = useLocation();
@@ -140,80 +141,86 @@ const VendorProductsPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <div
-                key={product.perfume_id}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow group"
-              >
-                <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
-                  <Link
-                    to={`/product/${product.perfume_id}`}
-                    state={{ from: location.pathname }}
-                    className="block w-full h-full"
-                  >
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : product.image_url ? (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <Package size={48} />
-                      </div>
-                    )}
-                  </Link>
-                  <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {filteredProducts.map((product) => {
+              const productSlug = generateSlug(
+                product.name,
+                product.perfume_id,
+              );
+              return (
+                <div
+                  key={product.perfume_id}
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow group"
+                >
+                  <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
                     <Link
-                      to={`/vendor/products/edit/${product.perfume_id}`}
-                      className="p-2 bg-white/90 backdrop-blur text-gray-700 rounded-full hover:bg-green-900 hover:text-white transition-colors shadow-lg"
+                      to={`/product/${productSlug}`}
+                      state={{ from: location.pathname }}
+                      className="block w-full h-full"
                     >
-                      <Edit2 size={18} />
+                      {product.images && product.images.length > 0 ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : product.image_url ? (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <Package size={48} />
+                        </div>
+                      )}
                     </Link>
-                    <button
-                      onClick={() => handleDeleteClick(product)}
-                      className="p-2 bg-white/90 backdrop-blur text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-colors shadow-lg"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-widest text-gray-400 font-bold mb-1">
-                        {product.brand}
-                      </p>
+                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Link
-                        to={`/product/${product.perfume_id}`}
-                        state={{ from: location.pathname }}
+                        to={`/vendor/products/edit/${productSlug}`}
+                        className="p-2 bg-white/90 backdrop-blur text-gray-700 rounded-full hover:bg-green-900 hover:text-white transition-colors shadow-lg"
                       >
-                        <h3 className="text-lg font-serif font-bold text-gray-900 group-hover:text-green-900 transition-colors">
-                          {product.name}
-                        </h3>
+                        <Edit2 size={18} />
                       </Link>
+                      <button
+                        onClick={() => handleDeleteClick(product)}
+                        className="p-2 bg-white/90 backdrop-blur text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-colors shadow-lg"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
-                    <span className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
-                      {product.scent_type || "Scent"}
-                    </span>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                    <div className="text-sm font-medium text-gray-900">
-                      <span> {product.mood || "Mood"}</span>
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+                          {product.brand}
+                        </p>
+                        <Link
+                          to={`/product/${productSlug}`}
+                          state={{ from: location.pathname }}
+                        >
+                          <h3 className="text-lg font-serif font-bold text-gray-900 group-hover:text-green-900 transition-colors">
+                            {product.name}
+                          </h3>
+                        </Link>
+                      </div>
+                      <span className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+                        {product.scent_type || "Scent"}
+                      </span>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      Made in {product.origin || "Origin"}
+                    <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
+                      <div className="text-sm font-medium text-gray-900">
+                        <span> {product.mood || "Mood"}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Made in {product.origin || "Origin"}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

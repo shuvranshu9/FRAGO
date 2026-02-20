@@ -1,8 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Eye, Package } from "lucide-react";
+import { Eye, Package, Heart } from "lucide-react";
+import { useWishlist } from "../../context/WishlistContext";
+import { generateSlug } from "../../utils/slug";
 
 const ProductCard = ({ product }) => {
   const location = useLocation();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isBookmarked = isInWishlist(product.perfume_id);
+  const productSlug = generateSlug(product.name, product.perfume_id);
   // Get initial price from variants if available
   const getStartingPrice = () => {
     if (!product.variants || product.variants.length === 0) return null;
@@ -28,14 +33,24 @@ const ProductCard = ({ product }) => {
         )}
 
         {/* Quick Action Overlay */}
-        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-[2px] flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-[2px] flex items-center justify-center gap-3">
           <Link
-            to={`/product/${product.perfume_id}`}
+            to={`/product/${productSlug}`}
             state={{ from: location.pathname }}
-            className="p-4 bg-white text-gray-900 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 hover:bg-green-900 hover:text-white"
+            className="p-3 bg-white text-gray-900 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 hover:bg-green-900 hover:text-white"
           >
-            <Eye size={24} />
+            <Eye size={20} />
           </Link>
+          <button
+            onClick={() => toggleWishlist(product.perfume_id)}
+            className={`p-3 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 ${
+              isBookmarked
+                ? "bg-green-900 text-white"
+                : "bg-white text-gray-900 hover:bg-red-50 hover:text-red-500"
+            }`}
+          >
+            <Heart size={20} fill={isBookmarked ? "currentColor" : "none"} />
+          </button>
         </div>
 
         {/* Badge */}
@@ -53,7 +68,7 @@ const ProductCard = ({ product }) => {
           {product.brand}
         </p>
         <Link
-          to={`/product/${product.perfume_id}`}
+          to={`/product/${productSlug}`}
           state={{ from: location.pathname }}
         >
           <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-green-900 transition-colors">

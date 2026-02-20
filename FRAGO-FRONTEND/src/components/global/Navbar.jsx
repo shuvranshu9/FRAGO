@@ -11,9 +11,11 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import Logo from "../../assets/LOGO.png";
 import { useAuth } from "../../context/AuthContext";
+import { useWishlist } from "../../context/WishlistContext";
 
 const Navbar = () => {
   const { user, isAuthenticated } = useAuth();
+  const { wishlistCount } = useWishlist();
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -143,16 +145,23 @@ const Navbar = () => {
             </Link>
             <Link
               to="/wishlist"
-              className={`hidden lg:flex items-center transition-colors group ${
+              className={`hidden lg:flex items-center transition-colors group relative ${
                 isActiveLink("/wishlist")
                   ? "text-green-900"
                   : "text-gray-600 hover:text-green-900"
               }`}
             >
-              <Heart
-                size={22}
-                className="mr-2 group-hover:scale-105 transition-transform"
-              />
+              <div className="relative">
+                <Heart
+                  size={22}
+                  className="group-hover:scale-110 transition-transform"
+                />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full animate-in zoom-in duration-300">
+                    {wishlistCount}
+                  </span>
+                )}
+              </div>
             </Link>
             <Link
               to="/cart"
@@ -373,10 +382,17 @@ const Navbar = () => {
                     : "text-gray-700 hover:text-green-900 hover:bg-green-50"
                 }`}
               >
-                <Heart
-                  size={20}
-                  className={`mr-3 ${isActiveLink("/wishlist") ? "text-green-500" : "text-gray-400"}`}
-                />
+                <div className="relative mr-3">
+                  <Heart
+                    size={20}
+                    className={`${isActiveLink("/wishlist") ? "text-green-500" : "text-gray-400"}`}
+                  />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-green-600 text-white text-[8px] font-bold h-3.5 w-3.5 flex items-center justify-center rounded-full">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </div>
                 <span className="font-medium">Wishlist</span>
                 {isActiveLink("/wishlist") && (
                   <span className="ml-auto text-green-600 text-xs">Active</span>

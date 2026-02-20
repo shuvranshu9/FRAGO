@@ -1,8 +1,10 @@
+import { useNavigate } from "react-router";
 import AboutHero from "../../components/about/AboutHero";
 import StorySection from "../../components/about/StorySection";
 import ValuesSection from "../../components/about/ValuesSection";
 
 const AboutUsPage = () => {
+  const navigate = useNavigate();
   return (
     <div className="w-full">
       <AboutHero />
@@ -19,7 +21,10 @@ const AboutUsPage = () => {
             Join thousands of others who have found their signature scent with
             FRAGO.
           </p>
-          <button className="px-10 py-4 bg-[#2f5e3a] text-white text-xs uppercase tracking-[0.2em] hover:bg-green-950 transition-all shadow-lg">
+          <button
+            className="px-10 py-4 bg-[#2f5e3a] text-white text-xs uppercase tracking-[0.2em] hover:bg-green-950 transition-all shadow-lg"
+            onClick={() => navigate("/perfumes")}
+          >
             Shop the Collection
           </button>
         </div>

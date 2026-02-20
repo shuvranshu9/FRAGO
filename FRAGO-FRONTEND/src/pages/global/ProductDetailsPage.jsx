@@ -11,16 +11,21 @@ import {
   Package,
   ChevronLeft,
   ChevronRight,
+  Heart,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
+import { useWishlist } from "../../context/WishlistContext";
 import api from "../../utils/api";
+import { extractIdFromSlug } from "../../utils/slug";
 
 const ProductDetailsPage = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
+  const id = extractIdFromSlug(slug);
   const location = useLocation();
   const from = location.state?.from || "/perfumes";
   const { token } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -102,7 +107,11 @@ const ProductDetailsPage = () => {
             size={20}
             className="mr-2 group-hover:-translate-x-1 transition-transform"
           />
-          {from.includes("vendor") ? "Back to My Listings" : "Back to Perfumes"}
+          {from.includes("vendor")
+            ? "Back to My Listings"
+            : from.includes("wishlist")
+              ? "Back to Wishlist"
+              : "Back to Perfumes"}
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
@@ -196,9 +205,26 @@ const ProductDetailsPage = () => {
               <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-gray-400 font-bold mb-3">
                 {product.brand}
               </p>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900 leading-tight mb-4">
-                {product.name}
-              </h1>
+              <div className="flex justify-between items-start mb-4">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900 leading-tight">
+                  {product.name}
+                </h1>
+                <button
+                  onClick={() => toggleWishlist(product.perfume_id)}
+                  className={`p-4 rounded-2xl shadow-sm transition-all duration-300 active:scale-95 border ${
+                    isInWishlist(product.perfume_id)
+                      ? "bg-green-50 border-green-200 text-green-900"
+                      : "bg-white border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100"
+                  }`}
+                >
+                  <Heart
+                    size={28}
+                    fill={
+                      isInWishlist(product.perfume_id) ? "currentColor" : "none"
+                    }
+                  />
+                </button>
+              </div>
               <div className="flex flex-wrap items-center gap-4 text-gray-500 text-sm">
                 <div className="flex items-center">
                   <Wind size={16} className="mr-2 text-green-800" />

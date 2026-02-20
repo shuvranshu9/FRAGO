@@ -35,7 +35,6 @@ export const getBookmarks = async (userId) => {
     `
         SELECT 
             b.bookmark_id,
-            b.created_at,
             p.perfume_id,
             p.name,
             p.brand,

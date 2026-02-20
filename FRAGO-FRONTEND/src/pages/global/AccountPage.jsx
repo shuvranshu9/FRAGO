@@ -94,11 +94,11 @@ export default function AccountPage() {
 
           {/* Right: Personal Details */}
           <div className="md:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-6">
-            <h2 className="text-xl font-bold text-gray-900 border-b border-gray-50 pb-4">
+            <h2 className="text-xl font-bold text-gray-900 border-b border-gray-50 pb-2">
               Personal Details
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 ">
               <InfoCard
                 icon={<Mail size={20} />}
                 label="Email Address"

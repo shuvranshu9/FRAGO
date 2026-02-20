@@ -481,7 +481,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
         </div>
       </div>
 
-      <div className="flex justify-end gap-4 pt-4">
+      <div className="flex justify-end gap-4">
         <button
           type="button"
           onClick={() => window.history.back()}
