@@ -12,10 +12,12 @@ import { Link, useLocation } from "react-router-dom";
 import Logo from "../../assets/LOGO.png";
 import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { useCart } from "../../context/CartContext";
 
 const Navbar = () => {
   const { user, isAuthenticated } = useAuth();
   const { wishlistCount } = useWishlist();
+  const { cartCount } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -171,10 +173,17 @@ const Navbar = () => {
                   : "text-gray-600 hover:text-green-900"
               }`}
             >
-              <ShoppingBag
-                size={22}
-                className="mr-2 group-hover:scale-105 transition-transform"
-              />
+              <div className="relative">
+                <ShoppingBag
+                  size={22}
+                  className="group-hover:scale-105 transition-transform"
+                />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-green-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full animate-in zoom-in duration-300">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </div>
             </Link>
             <Link
               to="/chat"

@@ -1,13 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
-import { Eye, Package, Heart } from "lucide-react";
+import { Eye, Package, Heart, ShoppingBag } from "lucide-react";
 import { useWishlist } from "../../context/WishlistContext";
+import { useCart } from "../../context/CartContext";
 import { generateSlug } from "../../utils/slug";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 const ProductCard = ({ product }) => {
+  const [addingToCart, setAddingToCart] = useState(false);
   const location = useLocation();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { addToCart } = useCart();
   const isBookmarked = isInWishlist(product.perfume_id);
   const productSlug = generateSlug(product.name, product.perfume_id);
+
   // Get initial price from variants if available
   const getStartingPrice = () => {
     if (!product.variants || product.variants.length === 0) return null;
@@ -15,7 +21,34 @@ const ProductCard = ({ product }) => {
     return Math.min(...prices);
   };
 
+  const getCheapestVariantId = () => {
+    if (!product.variants || product.variants.length === 0) return null;
+    return product.variants.reduce((prev, curr) =>
+      prev.price < curr.price ? prev : curr,
+    ).variant_id;
+  };
+
   const startingPrice = getStartingPrice();
+
+  const handleQuickAdd = async (e) => {
+    e.preventDefault(); // Prevent navigating if this was wrapped in a Link, though it's inside a button
+    e.stopPropagation();
+
+    const variantId = getCheapestVariantId();
+    if (!variantId) {
+      toast.error("Product currently unavailable");
+      return;
+    }
+
+    setAddingToCart(true);
+    const result = await addToCart(variantId, 1);
+    if (result.success) {
+      toast.success("Added to cart!");
+    } else {
+      toast.error(result.message || "Failed to add to cart");
+    }
+    setAddingToCart(false);
+  };
 
   return (
     <div className="group flex flex-col items-center bg-white rounded-3xl p-4 transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 border border-transparent hover:border-gray-50">
@@ -42,8 +75,27 @@ const ProductCard = ({ product }) => {
             <Eye size={20} />
           </Link>
           <button
-            onClick={() => toggleWishlist(product.perfume_id)}
-            className={`p-3 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 ${
+            onClick={handleQuickAdd}
+            disabled={addingToCart}
+            title="Quick Add to Cart (Default Size)"
+            className={`p-3 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-75 ${
+              addingToCart
+                ? "bg-green-800 text-white cursor-wait"
+                : "bg-white text-gray-900 hover:bg-green-900 hover:text-white"
+            }`}
+          >
+            <ShoppingBag
+              size={20}
+              className={addingToCart ? "animate-pulse" : ""}
+            />
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product.perfume_id);
+            }}
+            className={`p-3 rounded-full shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100 ${
               isBookmarked
                 ? "bg-green-900 text-white"
                 : "bg-white text-gray-900 hover:bg-red-50 hover:text-red-500"

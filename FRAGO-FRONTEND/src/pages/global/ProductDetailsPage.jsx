@@ -12,10 +12,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
+  Plus,
+  Minus,
+  ShoppingBag,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { useCart } from "../../context/CartContext";
 import api from "../../utils/api";
 import { extractIdFromSlug } from "../../utils/slug";
 
@@ -26,9 +30,13 @@ const ProductDetailsPage = () => {
   const from = location.state?.from || "/perfumes";
   const { token } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const handleNextImage = useCallback(() => {
     if (!product?.images) return;
@@ -58,7 +66,11 @@ const ProductDetailsPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data.success) {
-          setProduct(response.data.data);
+          const fetchedProduct = response.data.data;
+          setProduct(fetchedProduct);
+          if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
+            setSelectedVariantId(fetchedProduct.variants[0].variant_id);
+          }
         } else {
           toast.error(
             response.data.message || "Failed to load perfume details",
@@ -74,6 +86,25 @@ const ProductDetailsPage = () => {
 
     fetchProductDetails();
   }, [id, token]);
+
+  const handleAddToCart = async () => {
+    if (!selectedVariantId) {
+      toast.error("Please select a size first");
+      return;
+    }
+
+    setAddingToCart(true);
+    const result = await addToCart(selectedVariantId, quantity);
+
+    if (result.success) {
+      toast.success(result.message || "Added to cart!");
+      // Reset quantity after successful add if desired
+      setQuantity(1);
+    } else {
+      toast.error(result.message || "Failed to add to cart");
+    }
+    setAddingToCart(false);
+  };
 
   if (loading) {
     return (
@@ -247,12 +278,23 @@ const ProductDetailsPage = () => {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {product.variants.map((v) => (
-                      <div
+                      <button
                         key={v.variant_id}
-                        className="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex justify-between items-center group hover:border-green-900/30 transition-colors"
+                        onClick={() => setSelectedVariantId(v.variant_id)}
+                        className={`p-4 rounded-2xl border flex justify-between items-center group transition-all text-left ${
+                          selectedVariantId === v.variant_id
+                            ? "bg-green-50 border-green-900 ring-2 ring-green-900/20"
+                            : "bg-gray-50 border-gray-100 hover:border-green-900/30"
+                        }`}
                       >
                         <div>
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter mb-1">
+                          <p
+                            className={`text-xs font-bold uppercase tracking-tighter mb-1 ${
+                              selectedVariantId === v.variant_id
+                                ? "text-green-800"
+                                : "text-gray-400"
+                            }`}
+                          >
                             Size
                           </p>
                           <p className="text-lg font-serif font-bold text-gray-900">
@@ -260,15 +302,64 @@ const ProductDetailsPage = () => {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter mb-1">
+                          <p
+                            className={`text-xs font-bold uppercase tracking-tighter mb-1 ${
+                              selectedVariantId === v.variant_id
+                                ? "text-green-800"
+                                : "text-gray-400"
+                            }`}
+                          >
                             Price
                           </p>
                           <p className="text-xl font-bold text-green-900">
                             Rs. {v.price.toLocaleString()}
                           </p>
                         </div>
-                      </div>
+                      </button>
                     ))}
+                  </div>
+
+                  {/* Quantity and Add to Cart */}
+                  <div className="mt-8 flex flex-col sm:flex-row gap-4 mb-4">
+                    <div className="flex items-center bg-gray-50 rounded-full border border-gray-100 p-2 sm:w-1/3">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="p-3 rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all"
+                      >
+                        <Minus size={20} />
+                      </button>
+                      <span className="flex-1 text-center font-bold text-lg select-none text-gray-900">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const selectedVariant = product.variants.find(
+                            (v) => v.variant_id === selectedVariantId,
+                          );
+                          const maxStock = selectedVariant
+                            ? selectedVariant.stock_quantity
+                            : 99;
+                          setQuantity(Math.min(maxStock, quantity + 1));
+                        }}
+                        className="p-3 rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all"
+                      >
+                        <Plus size={20} />
+                      </button>
+                    </div>
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={addingToCart}
+                      className={`flex-1 flex items-center justify-center py-4 rounded-full font-bold text-lg transition-all shadow-xl ${
+                        addingToCart
+                          ? "bg-green-800 text-white opacity-80 cursor-not-allowed"
+                          : "bg-green-900 text-white hover:bg-green-800 hover:shadow-green-900/30"
+                      }`}
+                    >
+                      <ShoppingBag className="mr-3" size={24} />
+                      {addingToCart
+                        ? "Adding to Cart..."
+                        : `Add to Cart - Rs. ${((product.variants.find((v) => v.variant_id === selectedVariantId)?.price || 0) * quantity).toLocaleString()}`}
+                    </button>
                   </div>
                 </div>
               )}
