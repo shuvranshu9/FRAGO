@@ -9,6 +9,24 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
+const decodeToken = (token) => {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join(""),
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+};
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -50,6 +68,29 @@ export const AuthProvider = ({ children }) => {
       window.removeEventListener("sessionExpired", handleSessionExpired);
     };
   }, [logout, navigate]);
+
+  // Handle automatic timeout when the token expires
+  useEffect(() => {
+    if (token) {
+      const decoded = decodeToken(token);
+      if (decoded && decoded.exp) {
+        const currentTime = Date.now() / 1000;
+        const timeRemaining = decoded.exp - currentTime;
+
+        if (timeRemaining <= 0) {
+          // Token is already expired
+          window.dispatchEvent(new CustomEvent("sessionExpired"));
+        } else {
+          // Set a timeout to log the user out exactly when the token expires
+          const timer = setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("sessionExpired"));
+          }, timeRemaining * 1000);
+
+          return () => clearTimeout(timer); // Cleanup if token changes or unmounts
+        }
+      }
+    }
+  }, [token]);
 
   const value = {
     user,
