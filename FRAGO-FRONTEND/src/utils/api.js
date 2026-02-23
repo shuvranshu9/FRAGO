@@ -7,4 +7,21 @@ const api = axios.create({
   },
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const url = error.config.url;
+      if (
+        !url.includes("/login") &&
+        !url.includes("/register") &&
+        !url.includes("/verify-otp")
+      ) {
+        window.dispatchEvent(new CustomEvent("sessionExpired"));
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
 export default api;

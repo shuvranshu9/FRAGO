@@ -1,5 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext(null);
 
@@ -13,6 +21,8 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem("token") || null;
   });
 
+  const navigate = useNavigate();
+
   const login = (userData, tokenData) => {
     setUser(userData);
     setToken(tokenData);
@@ -20,12 +30,26 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", tokenData);
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      logout();
+      toast.error("Session Expired please log in");
+      navigate("/login");
+    };
+
+    window.addEventListener("sessionExpired", handleSessionExpired);
+
+    return () => {
+      window.removeEventListener("sessionExpired", handleSessionExpired);
+    };
+  }, [logout, navigate]);
 
   const value = {
     user,
@@ -35,11 +59,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!token,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

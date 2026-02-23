@@ -83,7 +83,7 @@ const PerfumesPage = () => {
   }, [products, searchTerm, filters, sortBy]);
 
   return (
-    <div className="min-h-screen bg-[#FCFBFA] pt-4 px-4 md:px-8">
+    <div className="min-h-screen bg-[#FCFBFA] pt-4 pb-10 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Toolbar Section */}
         <div className="flex flex-col md:flex-row gap-6 mb-4 items-center justify-between  top-[80px] z-40 bg-[#FCFBFA]/80 backdrop-blur-md py-4 transition-all duration-300">
