@@ -84,11 +84,10 @@ const CartPage = () => {
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
-  const tax = subtotal * 0.13; // 13% VAT
-  const total = subtotal + tax;
+  const total = subtotal;
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] pt-8 pb-20 px-4 md:px-8">
+    <div className="min-h-auto bg-[#F8F9FA] pt-8 pb-10 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <Link
           to="/perfumes"
@@ -257,12 +256,6 @@ const CartPage = () => {
                       </span>
                     </div>
                     <div className="flex justify-between text-gray-600">
-                      <span>Estimated Tax (13%)</span>
-                      <span className="font-semibold text-gray-900">
-                        Rs. {tax.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
                       <span>Shipping</span>
                       <span className="text-green-600 font-medium">Free</span>
                     </div>
@@ -276,17 +269,19 @@ const CartPage = () => {
                       <span className="text-2xl font-bold text-green-900 tracking-tight">
                         Rs. {total.toLocaleString()}
                       </span>
-                      <p className="text-xs text-gray-400 mt-1">inkl. taxes</p>
                     </div>
                   </div>
 
-                  <button className="w-full py-4 bg-black text-white rounded-full font-bold text-lg hover:bg-green-900 transition-colors shadow-lg shadow-black/10 flex items-center justify-center group mb-4">
+                  <Link
+                    to="/checkout"
+                    className="w-full py-4 bg-black text-white rounded-full font-bold text-lg hover:bg-green-900 transition-colors shadow-lg shadow-black/10 flex items-center justify-center group mb-4"
+                  >
                     Proceed to Checkout
                     <ArrowLeft
                       size={20}
                       className="ml-2 rotate-180 group-hover:translate-x-1 transition-transform"
                     />
-                  </button>
+                  </Link>
 
                   <div className="flex items-center justify-center text-gray-400 text-xs">
                     <ShieldCheck size={16} className="mr-1.5" />

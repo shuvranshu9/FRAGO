@@ -7,6 +7,7 @@ import {
   Menu,
   X,
   MessageCircleMore,
+  Package,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "../../assets/LOGO.png";
@@ -165,6 +166,7 @@ const Navbar = () => {
                 )}
               </div>
             </Link>
+
             <Link
               to="/cart"
               className={`flex items-center transition-colors group relative ${
@@ -184,6 +186,19 @@ const Navbar = () => {
                   </span>
                 )}
               </div>
+            </Link>
+            <Link
+              to="/account/orders"
+              className={`hidden lg:flex items-center transition-colors group ${
+                isActiveLink("/account/orders")
+                  ? "text-green-900"
+                  : "text-gray-600 hover:text-green-900"
+              }`}
+            >
+              <Package
+                size={22}
+                className="group-hover:scale-110 transition-transform"
+              />
             </Link>
             <Link
               to="/chat"
@@ -404,6 +419,24 @@ const Navbar = () => {
                 </div>
                 <span className="font-medium">Wishlist</span>
                 {isActiveLink("/wishlist") && (
+                  <span className="ml-auto text-green-600 text-xs">Active</span>
+                )}
+              </Link>
+              <Link
+                to="/account/orders"
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center px-3 py-3 rounded-lg transition-colors ${
+                  isActiveLink("/account/orders")
+                    ? "text-green-900 bg-green-50"
+                    : "text-gray-700 hover:text-green-900 hover:bg-green-50"
+                }`}
+              >
+                <Package
+                  size={20}
+                  className={`mr-3 ${isActiveLink("/account/orders") ? "text-green-500" : "text-gray-400"}`}
+                />
+                <span className="font-medium">My Orders</span>
+                {isActiveLink("/account/orders") && (
                   <span className="ml-auto text-green-600 text-xs">Active</span>
                 )}
               </Link>

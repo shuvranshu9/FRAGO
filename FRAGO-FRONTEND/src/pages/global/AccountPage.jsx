@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   User,
@@ -60,7 +60,10 @@ export default function AccountPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left: Quick Actions */}
           <div className="md:col-span-1 space-y-4">
-            <button className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all group">
+            <Link
+              to="/account/orders"
+              className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all group"
+            >
               <div className="flex items-center gap-3">
                 <Package
                   size={20}
@@ -69,8 +72,11 @@ export default function AccountPage() {
                 <span className="font-medium text-gray-700">My Orders</span>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
-            </button>
-            <button className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all group">
+            </Link>
+            <Link
+              to="/wishlist"
+              className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all group"
+            >
               <div className="flex items-center gap-3">
                 <Heart
                   size={20}
@@ -79,7 +85,7 @@ export default function AccountPage() {
                 <span className="font-medium text-gray-700">Wishlist</span>
               </div>
               <ChevronRight size={18} className="text-gray-300" />
-            </button>
+            </Link>
             <button className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all group">
               <div className="flex items-center gap-3">
                 <Bell

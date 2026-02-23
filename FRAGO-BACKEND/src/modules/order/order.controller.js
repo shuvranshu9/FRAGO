@@ -9,7 +9,7 @@ export const checkoutController = async (req, res) => {
     // Get cart items
     const cart = await CartModel.getCartByUserId(userId);
 
-    if (!cart.iems || cart.items.length === 0) {
+    if (!cart.items || cart.items.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
     }
 

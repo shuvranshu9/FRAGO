@@ -23,6 +23,9 @@ import PerfumesPage from "./pages/global/PerfumesPage.jsx";
 import VendorProductsPage from "./pages/vendor/VendorProductsPage.jsx";
 import VendorProductFormPage from "./pages/vendor/VendorProductFormPage.jsx";
 import VendorCategoriesPage from "./pages/vendor/VendorCategoriesPage.jsx";
+import CheckoutPage from "./pages/global/CheckoutPage.jsx";
+import OrderSuccessPage from "./pages/global/OrderSuccessPage.jsx";
+import OrdersPage from "./pages/global/OrdersPage.jsx";
 
 export default function App() {
   return (
@@ -43,9 +46,15 @@ export default function App() {
               {/* Protected routes within MainLayout */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/account" element={<AccountPage />} />
+                <Route path="/account/orders" element={<OrdersPage />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/chat" element={<div>Chat Page</div>} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route
+                  path="/order-success/:orderId"
+                  element={<OrderSuccessPage />}
+                />
               </Route>
 
               {/* Vendor Specific Routes */}
