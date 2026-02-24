@@ -70,9 +70,7 @@ export const getOrderDetailsController = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Assuming strictly user facing for now
     if (order.user_id !== userId && req.user.role !== "vendor") {
-      // Allow vendors/admins too
       return res
         .status(403)
         .json({ message: "Unauthorized access to this order" });

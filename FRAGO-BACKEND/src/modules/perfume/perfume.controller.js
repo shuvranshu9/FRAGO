@@ -125,7 +125,6 @@ export const updatePerfumeController = async (req, res) => {
     }
 
     const perfumeName = req.body.name;
-    // We only need folder name if there are new files to upload
     if (req.files?.length && perfumeName) {
       const folderName = perfumeName
         .toLowerCase()

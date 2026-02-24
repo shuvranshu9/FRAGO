@@ -195,7 +195,7 @@ export const cancelOrder = async (orderId, userId) => {
   }
 };
 
-// Update order (User) - Edit items/quantities
+// Update order 
 export const updateOrder = async (orderId, userId, updatedItems) => {
   const conn = await pool.getConnection();
   try {
@@ -264,7 +264,6 @@ export const updateOrder = async (orderId, userId, updatedItems) => {
         );
       }
     } else {
-      // If no items left, maybe cancel the order?
       throw new Error("Order must have at least one item");
     }
 
