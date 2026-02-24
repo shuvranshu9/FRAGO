@@ -1,14 +1,25 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Package, Calendar, ArrowRight, ExternalLink } from "lucide-react";
+import {
+  Package,
+  Calendar,
+  ArrowRight,
+  ExternalLink,
+  XCircle,
+  Edit,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
 import { toast } from "react-toastify";
+import ConfirmationModal from "../../components/global/ConfirmationModal";
+import { AlertTriangle } from "lucide-react";
 
 const OrdersPage = () => {
   const { token } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -30,6 +41,35 @@ const OrdersPage = () => {
       fetchOrders();
     }
   }, [token]);
+
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
+
+    try {
+      await api.patch(
+        `/order/${orderToCancel}/cancel`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      toast.success("Order cancelled successfully");
+      // Update local state
+      setOrders(
+        orders.map((order) =>
+          order.order_id === orderToCancel
+            ? { ...order, order_status: "cancelled" }
+            : order,
+        ),
+      );
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      toast.error(error.response?.data?.message || "Failed to cancel order");
+    } finally {
+      setIsCancelModalOpen(false);
+      setOrderToCancel(null);
+    }
+  };
 
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
@@ -161,16 +201,39 @@ const OrdersPage = () => {
                       </span>
                     </td>
                     <td className="px-8 py-6 text-right">
-                      <Link
-                        to={`/order-success/${order.order_id}`}
-                        className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-green-900 transition-colors group"
-                      >
-                        View Details
-                        <ExternalLink
-                          size={16}
-                          className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
-                        />
-                      </Link>
+                      <div className="flex items-center justify-end gap-4">
+                        {order.order_status.toLowerCase() === "pending" && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setOrderToCancel(order.order_id);
+                                setIsCancelModalOpen(true);
+                              }}
+                              className="text-red-400 hover:text-red-600 transition-colors p-1"
+                              title="Cancel Order"
+                            >
+                              <XCircle size={18} />
+                            </button>
+                            <Link
+                              to={`/order-success/${order.order_id}?edit=true`}
+                              className="text-blue-400 hover:text-blue-600 transition-colors p-1"
+                              title="Edit Order"
+                            >
+                              <Edit size={18} />
+                            </Link>
+                          </>
+                        )}
+                        <Link
+                          to={`/order-success/${order.order_id}`}
+                          className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-green-900 transition-colors group"
+                        >
+                          View Details
+                          <ExternalLink
+                            size={16}
+                            className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+                          />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -213,18 +276,50 @@ const OrdersPage = () => {
                     </div>
                   </div>
 
-                  <Link
-                    to={`/order-success/${order.order_id}`}
-                    className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-green-900 hover:text-white transition-all shadow-sm border border-gray-100"
-                  >
-                    <ArrowRight size={20} />
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    {order.order_status.toLowerCase() === "pending" && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setOrderToCancel(order.order_id);
+                            setIsCancelModalOpen(true);
+                          }}
+                          className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-100 transition-all border border-red-100"
+                        >
+                          <XCircle size={18} />
+                        </button>
+                        <Link
+                          to={`/order-success/${order.order_id}?edit=true`}
+                          className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-400 hover:bg-blue-100 transition-all border border-blue-100"
+                        >
+                          <Edit size={18} />
+                        </Link>
+                      </>
+                    )}
+                    <Link
+                      to={`/order-success/${order.order_id}`}
+                      className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-green-900 hover:text-white transition-all shadow-sm border border-gray-100"
+                    >
+                      <ArrowRight size={20} />
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={handleCancelOrder}
+        title="Cancel Order"
+        description="Are you sure you want to cancel this order? This action will restore product stock and cannot be undone."
+        confirmText="Yes, Cancel Order"
+        confirmColor="bg-red-600"
+        icon={<AlertTriangle size={24} />}
+      />
     </div>
   );
 };

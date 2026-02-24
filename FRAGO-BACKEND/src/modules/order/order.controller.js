@@ -114,3 +114,47 @@ export const updateOrderStatusController = async (req, res) => {
     res.status(500).json({ message: "Failed to update order status" });
   }
 };
+
+// Cancel order (User)
+export const cancelOrderController = async (req, res) => {
+  try {
+    const userId = req.user.userID;
+    const { orderId } = req.params;
+
+    await OrderModel.cancelOrder(orderId, userId);
+
+    res.json({ message: "Order cancelled successfully" });
+  } catch (err) {
+    console.error("Error cancelling order:", err);
+    res
+      .status(err.message === "Order not found" ? 404 : 400)
+      .json({ message: err.message || "Failed to cancel order" });
+  }
+};
+
+// Update order (User)
+export const updateOrderController = async (req, res) => {
+  try {
+    const userId = req.user.userID;
+    const { orderId } = req.params;
+    const { items } = req.body;
+
+    if (!items || items.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Order must have at least one item" });
+    }
+
+    const result = await OrderModel.updateOrder(orderId, userId, items);
+
+    res.json({
+      message: "Order updated successfully",
+      newTotal: result.newTotal,
+    });
+  } catch (err) {
+    console.error("Error updating order:", err);
+    res
+      .status(err.message === "Order not found" ? 404 : 400)
+      .json({ message: err.message || "Failed to update order" });
+  }
+};
