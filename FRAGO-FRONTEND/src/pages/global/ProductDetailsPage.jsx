@@ -15,6 +15,9 @@ import {
   Plus,
   Minus,
   ShoppingBag,
+  Store,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
@@ -476,6 +479,77 @@ const ProductDetailsPage = () => {
                   >
                     Inquire
                   </Link>
+                </div>
+              </div>
+
+              {/* Vendor Information Section */}
+              <div className="pt-12 mt-12 border-t border-gray-100">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-900 border border-green-100">
+                    <Store size={20} />
+                  </div>
+                  <h3 className="text-xl font-serif font-bold text-gray-900">
+                    Vendor Information
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="bg-gray-50 rounded-[2rem] p-8 border border-gray-100/50">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                      Sold By
+                    </p>
+                    <h4 className="text-2xl font-serif font-bold text-gray-900 mb-2">
+                      {product.vendor_name || "Official Store"}
+                    </h4>
+                    <div className="flex items-center text-gray-500 text-sm italic">
+                      <ShieldCheck size={14} className="mr-2 text-green-700" />
+                      Verified Professional Vendor
+                    </div>
+                  </div>
+
+                  <div className="space-y-6 flex flex-col justify-center">
+                    <div className="flex items-center group">
+                      <div className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-green-900 group-hover:border-green-100 group-hover:bg-green-50 transition-all mr-4 shadow-sm">
+                        <MapPin size={18} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                          Location
+                        </p>
+                        <p className="text-gray-900 font-medium capitalize">
+                          {product.vendor_address || "Nepal"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center group">
+                      <div className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-green-900 group-hover:border-green-100 group-hover:bg-green-50 transition-all mr-4 shadow-sm">
+                        <Phone size={18} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                          Contact
+                        </p>
+                        <p className="text-gray-900 font-medium">
+                          {product.vendor_phone || "+977-98XXXXXXXX"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center group">
+                      <div className="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-green-900 group-hover:border-green-100 group-hover:bg-green-50 transition-all mr-4 shadow-sm">
+                        <Mail size={18} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                          Email
+                        </p>
+                        <p className="text-gray-900 font-medium">
+                          {product.vendor_email || "contact@frago.com"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -7,12 +7,13 @@ import {
   ExternalLink,
   XCircle,
   Edit,
+  CreditCard,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
 import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/global/ConfirmationModal";
-import { AlertTriangle } from "lucide-react";
 
 const OrdersPage = () => {
   const { token } = useAuth();
@@ -20,6 +21,7 @@ const OrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
+  const [payingOrderId, setPayingOrderId] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -68,6 +70,35 @@ const OrdersPage = () => {
     } finally {
       setIsCancelModalOpen(false);
       setOrderToCancel(null);
+    }
+  };
+
+  const handlePayment = async (orderId) => {
+    setPayingOrderId(orderId);
+    try {
+      const response = await api.post(
+        "/payment/initiate",
+        {
+          orderId,
+          website_url: window.location.origin,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.data.payment_url) {
+        window.location.href = response.data.payment_url;
+      } else {
+        toast.error("Failed to initiate payment. Please try again.");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to initiate payment",
+      );
+    } finally {
+      setPayingOrderId(null);
     }
   };
 
@@ -205,6 +236,19 @@ const OrdersPage = () => {
                         {order.order_status.toLowerCase() === "pending" && (
                           <>
                             <button
+                              onClick={() => handlePayment(order.order_id)}
+                              disabled={payingOrderId === order.order_id}
+                              className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-green-900 text-white rounded-xl text-xs font-bold hover:bg-green-800 transition-all shadow-md shadow-green-900/10 disabled:opacity-50"
+                              title="Pay Now"
+                            >
+                              {payingOrderId === order.order_id ? (
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <CreditCard size={14} />
+                              )}
+                              Pay Now
+                            </button>
+                            <button
                               onClick={() => {
                                 setOrderToCancel(order.order_id);
                                 setIsCancelModalOpen(true);
@@ -279,6 +323,18 @@ const OrdersPage = () => {
                   <div className="flex items-center gap-3">
                     {order.order_status.toLowerCase() === "pending" && (
                       <>
+                        <button
+                          onClick={() => handlePayment(order.order_id)}
+                          disabled={payingOrderId === order.order_id}
+                          className="w-10 h-10 bg-green-900 rounded-xl flex items-center justify-center text-white hover:bg-green-800 transition-all border border-green-900 shadow-md shadow-green-900/10 disabled:opacity-50"
+                          title="Pay Now"
+                        >
+                          {payingOrderId === order.order_id ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <CreditCard size={18} />
+                          )}
+                        </button>
                         <button
                           onClick={() => {
                             setOrderToCancel(order.order_id);

@@ -59,8 +59,32 @@ const CheckoutPage = () => {
       await fetchCart();
 
       toast.success("Order placed successfully!");
-      // Redirect to success page
-      navigate(`/order-success/${response.data.orderId}`);
+
+      // Initiate Khalti Payment
+      try {
+        const paymentResponse = await api.post(
+          "/payment/initiate",
+          {
+            orderId: response.data.orderId,
+            website_url: window.location.origin,
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        if (paymentResponse.data.payment_url) {
+          window.location.href = paymentResponse.data.payment_url;
+        } else {
+          navigate(`/order-success/${response.data.orderId}`);
+        }
+      } catch (payError) {
+        console.error("Payment initiation error:", payError);
+        toast.error(
+          "Order placed but payment initiation failed. Please contact support.",
+        );
+        navigate(`/order-success/${response.data.orderId}`);
+      }
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(error.response?.data?.message || "Failed to place order");

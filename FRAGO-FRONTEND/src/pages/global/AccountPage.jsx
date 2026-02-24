@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -8,20 +9,61 @@ import {
   Shield,
   LogOut,
   ChevronRight,
-  Package,
   Heart,
   Bell,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../utils/api";
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, token, logout, updateUserContext } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: user?.full_name || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+  });
 
   const handleLogout = () => {
     logout();
     toast.success("Logged out successfully");
     navigate("/login");
+  };
+
+  const handleSave = async () => {
+    if (!formData.full_name) {
+      toast.error("Full name is required");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.patch("/auth/profile/update", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      updateUserContext(formData);
+      setIsEditing(false);
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      full_name: user?.full_name || "",
+      phone: user?.phone || "",
+      address: user?.address || "",
+    });
+    setIsEditing(false);
   };
 
   if (!user) return null;
@@ -45,16 +87,45 @@ export default function AccountPage() {
               <span className="text-sm">• Member since 2025</span>
             </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-2xl transition-all font-semibold text-sm group"
-          >
-            <LogOut
-              size={18}
-              className="transition-transform group-hover:-translate-x-1"
-            />
-            Logout
-          </button>
+          <div className="flex gap-3">
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-green-900 text-white hover:bg-green-800 rounded-2xl transition-all font-semibold text-sm shadow-lg shadow-green-900/10"
+              >
+                <Edit size={18} />
+                Edit Profile
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-6 py-3 bg-green-900 text-white hover:bg-green-800 rounded-2xl transition-all font-semibold text-sm shadow-lg shadow-green-900/10 disabled:opacity-50"
+                >
+                  <Save size={18} />
+                  {loading ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-2xl transition-all font-semibold text-sm"
+                >
+                  <X size={18} />
+                  Cancel
+                </button>
+              </>
+            )}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-2xl transition-all font-semibold text-sm group"
+            >
+              <LogOut
+                size={18}
+                className="transition-transform group-hover:-translate-x-1"
+              />
+              Logout
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -111,14 +182,31 @@ export default function AccountPage() {
                 value={user.email}
               />
               <InfoCard
+                icon={<User size={20} />}
+                label="Full Name"
+                value={formData.full_name}
+                isEditing={isEditing}
+                onChange={(e) =>
+                  setFormData({ ...formData, full_name: e.target.value })
+                }
+              />
+              <InfoCard
                 icon={<Phone size={20} />}
                 label="Phone Number"
-                value={user.phone || "Not provided"}
+                value={formData.phone}
+                isEditing={isEditing}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
               />
               <InfoCard
                 icon={<MapPin size={20} />}
                 label="Default Address"
-                value={user.address || "Not provided"}
+                value={formData.address}
+                isEditing={isEditing}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
                 className="sm:col-span-2"
               />
               <div className="sm:col-span-2 p-4 bg-gray-50 rounded-2xl flex items-start gap-4 border border-dashed border-gray-200">
@@ -141,7 +229,14 @@ export default function AccountPage() {
   );
 }
 
-function InfoCard({ icon, label, value, className = "" }) {
+function InfoCard({
+  icon,
+  label,
+  value,
+  className = "",
+  isEditing = false,
+  onChange,
+}) {
   return (
     <div
       className={`p-5 bg-gray-50/50 rounded-2xl border border-gray-100/50 transition-colors hover:bg-gray-50 ${className}`}
@@ -152,7 +247,18 @@ function InfoCard({ icon, label, value, className = "" }) {
           {label}
         </span>
       </div>
-      <p className="text-gray-900 font-medium ml-8">{value}</p>
+      {isEditing && onChange ? (
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-green-900/10 focus:border-green-800 transition-all outline-none"
+        />
+      ) : (
+        <p className="text-gray-900 font-medium ml-8">
+          {value || "Not provided"}
+        </p>
+      )}
     </div>
   );
 }

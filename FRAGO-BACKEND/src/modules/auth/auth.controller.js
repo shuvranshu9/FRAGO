@@ -8,6 +8,7 @@ import {
   saveResetCode,
   verifyResetCode,
   updatePassword,
+  updateUser,
 } from "./auth.model.js";
 import { sendResetCodeMail } from "../../utils/sendResetCode.js";
 
@@ -219,6 +220,33 @@ export const resetPassword = async (req, res, next) => {
 
     res.status(200).json({
       message: "Password reset successful",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.userID; // From verifyToken middleware
+    const { full_name, phone, address } = req.body;
+
+    if (!full_name) {
+      return res.status(400).json({ message: "Full name is required" });
+    }
+
+    const success = await updateUser(userId, { full_name, phone, address });
+
+    if (!success) {
+      return res
+        .status(404)
+        .json({ message: "User not found or no changes made" });
+    }
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: { full_name, phone, address },
     });
   } catch (err) {
     next(err);

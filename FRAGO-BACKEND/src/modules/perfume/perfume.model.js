@@ -156,6 +156,10 @@ export const getPerfumeById = async (perfume_id) => {
     `
         SELECT 
           p.*,
+          u.full_name AS vendor_name,
+          u.email AS vendor_email,
+          u.phone AS vendor_phone,
+          u.address AS vendor_address,
           (
             SELECT COALESCE(JSON_ARRAYAGG(pi.image_url), JSON_ARRAY())
             FROM perfume_image pi
@@ -179,6 +183,7 @@ export const getPerfumeById = async (perfume_id) => {
           ) AS variants
 
         FROM perfume p
+        LEFT JOIN user u ON p.vendor_id = u.user_id
         WHERE p.perfume_id = ?;
     `,
     [perfume_id],

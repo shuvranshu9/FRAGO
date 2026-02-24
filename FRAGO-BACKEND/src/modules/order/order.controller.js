@@ -93,6 +93,7 @@ export const updateOrderStatusController = async (req, res) => {
 
     const validStatuses = [
       "pending",
+      "paid",
       "processing",
       "shipped",
       "delivered",

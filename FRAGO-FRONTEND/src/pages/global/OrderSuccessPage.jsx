@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Link,
   useParams,
@@ -17,6 +17,7 @@ import {
   Save,
   X,
   AlertTriangle,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
@@ -36,11 +37,35 @@ const OrderSuccessPage = () => {
   const [editItems, setEditItems] = useState([]);
   const [updating, setUpdating] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const hasVerified = useRef(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchOrderDetails = async () => {
       try {
+        // If pidx is present, it means we're coming from Khalti
+        const pidx = searchParams.get("pidx");
+        if (pidx && !hasVerified.current) {
+          hasVerified.current = true;
+          setLoading(true);
+          try {
+            await api.post(
+              "/payment/verify",
+              { pidx },
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            toast.success("Payment verified successfully!");
+          } catch (error) {
+            console.error("Verification error:", error);
+            const status = error.response?.data?.status;
+            toast.error(
+              status
+                ? `Payment Status: ${status}`
+                : "Payment verification failed. Please check your account.",
+            );
+          }
+        }
+
         const response = await api.get(`/order/${orderId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -57,7 +82,7 @@ const OrderSuccessPage = () => {
     if (orderId && token) {
       fetchOrderDetails();
     }
-  }, [orderId, token, navigate]);
+  }, [orderId, token, navigate, searchParams]);
 
   useEffect(() => {
     if (order && isEditModeParam && order.order_status === "pending") {
@@ -203,6 +228,12 @@ const OrderSuccessPage = () => {
                 <Package size={16} className="mr-2" />
                 {order.order_status}
               </div>
+              {order.order_status === "paid" && (
+                <div className="flex items-center text-blue-700 bg-blue-50 px-4 py-2 rounded-xl text-sm font-bold">
+                  <ShieldCheck size={16} className="mr-2" />
+                  Payment Received
+                </div>
+              )}
             </div>
           </div>
 
