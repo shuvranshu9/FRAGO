@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Filter, Search, SlidersHorizontal, Package } from "lucide-react";
+import { Search, SlidersHorizontal, Package } from "lucide-react";
 import api from "../../utils/api";
 import ProductCard from "../../components/global/ProductCard";
 import FilterSidebar from "../../components/global/FilterSidebar";
@@ -172,7 +172,7 @@ const PerfumesPage = () => {
                     fragrances
                   </p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 md:gap-10">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
                   {filteredAndSortedProducts.map((product) => (
                     <ProductCard key={product.perfume_id} product={product} />
                   ))}

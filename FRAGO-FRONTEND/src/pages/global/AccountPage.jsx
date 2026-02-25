@@ -9,6 +9,7 @@ import {
   Shield,
   LogOut,
   ChevronRight,
+  Package,
   Heart,
   Bell,
   Edit,
@@ -70,7 +71,7 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-[80vh] bg-gray-50 pt-10 pb-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         {/* Header Profile Section */}
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center text-green-700 ring-8 ring-green-50/50">
@@ -207,9 +208,8 @@ export default function AccountPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
                 }
-                className="sm:col-span-2"
               />
-              <div className="sm:col-span-2 p-4 bg-gray-50 rounded-2xl flex items-start gap-4 border border-dashed border-gray-200">
+              <div className="p-4 bg-gray-50 rounded-2xl flex items-start gap-4 border border-dashed border-gray-200">
                 <Shield className="text-green-600 shrink-0 mt-1" size={20} />
                 <div>
                   <p className="text-sm font-bold text-gray-900 leading-none mb-1">

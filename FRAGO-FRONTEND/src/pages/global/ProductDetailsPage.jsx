@@ -18,6 +18,9 @@ import {
   Store,
   Mail,
   Phone,
+  AlertTriangle,
+  XCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
@@ -283,16 +286,19 @@ const ProductDetailsPage = () => {
                     {product.variants.map((v) => (
                       <button
                         key={v.variant_id}
-                        onClick={() => setSelectedVariantId(v.variant_id)}
-                        className={`p-4 rounded-2xl border flex justify-between items-center group transition-all text-left ${
+                        onClick={() => {
+                          setSelectedVariantId(v.variant_id);
+                          setQuantity(1);
+                        }}
+                        className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all duration-300 ${
                           selectedVariantId === v.variant_id
-                            ? "bg-green-50 border-green-900 ring-2 ring-green-900/20"
-                            : "bg-gray-50 border-gray-100 hover:border-green-900/30"
-                        }`}
+                            ? "border-green-900 bg-green-50 shadow-md scale-[1.02]"
+                            : "border-gray-100 hover:border-gray-200 bg-white"
+                        } ${v.stock_quantity === 0 ? "opacity-60 grayscale-[0.5]" : ""}`}
                       >
-                        <div>
+                        <div className="flex flex-col items-start gap-1">
                           <p
-                            className={`text-xs font-bold uppercase tracking-tighter mb-1 ${
+                            className={`text-[10px] font-bold uppercase tracking-widest ${
                               selectedVariantId === v.variant_id
                                 ? "text-green-800"
                                 : "text-gray-400"
@@ -303,6 +309,25 @@ const ProductDetailsPage = () => {
                           <p className="text-lg font-serif font-bold text-gray-900">
                             {v.size_ml}ml
                           </p>
+                          {/* Stock Badge */}
+                          <div className="mt-1">
+                            {v.stock_quantity > 10 ? (
+                              <span className="flex items-center text-[10px] font-bold text-green-700 uppercase bg-green-100/50 px-2 py-0.5 rounded-full">
+                                <CheckCircle2 size={10} className="mr-1" />
+                                In Stock: {v.stock_quantity}
+                              </span>
+                            ) : v.stock_quantity > 0 ? (
+                              <span className="flex items-center text-[10px] font-bold text-orange-700 uppercase bg-orange-100/50 px-2 py-0.5 rounded-full">
+                                <AlertTriangle size={10} className="mr-1" />
+                                In Stock: {v.stock_quantity}
+                              </span>
+                            ) : (
+                              <span className="flex items-center text-[10px] font-bold text-red-700 uppercase bg-red-100/50 px-2 py-0.5 rounded-full">
+                                <XCircle size={10} className="mr-1" />
+                                Out of Stock
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="text-right">
                           <p
@@ -327,12 +352,21 @@ const ProductDetailsPage = () => {
                     <div className="flex items-center bg-gray-50 rounded-full border border-gray-100 p-2 sm:w-1/3">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="p-3 rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all"
+                        disabled={
+                          product.variants.find(
+                            (v) => v.variant_id === selectedVariantId,
+                          )?.stock_quantity === 0
+                        }
+                        className="p-3 rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <Minus size={20} />
                       </button>
                       <span className="flex-1 text-center font-bold text-lg select-none text-gray-900">
-                        {quantity}
+                        {product.variants.find(
+                          (v) => v.variant_id === selectedVariantId,
+                        )?.stock_quantity === 0
+                          ? 0
+                          : quantity}
                       </span>
                       <button
                         onClick={() => {
@@ -344,24 +378,45 @@ const ProductDetailsPage = () => {
                             : 99;
                           setQuantity(Math.min(maxStock, quantity + 1));
                         }}
-                        className="p-3 rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all"
+                        disabled={
+                          product.variants.find(
+                            (v) => v.variant_id === selectedVariantId,
+                          )?.stock_quantity === 0 ||
+                          quantity >=
+                            (product.variants.find(
+                              (v) => v.variant_id === selectedVariantId,
+                            )?.stock_quantity || 0)
+                        }
+                        className="p-3 rounded-full text-gray-600 hover:bg-white hover:shadow-sm transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <Plus size={20} />
                       </button>
                     </div>
                     <button
                       onClick={handleAddToCart}
-                      disabled={addingToCart}
+                      disabled={
+                        addingToCart ||
+                        product.variants.find(
+                          (v) => v.variant_id === selectedVariantId,
+                        )?.stock_quantity === 0
+                      }
                       className={`flex-1 flex items-center justify-center py-4 rounded-full font-bold text-lg transition-all shadow-xl ${
-                        addingToCart
-                          ? "bg-green-800 text-white opacity-80 cursor-not-allowed"
+                        addingToCart ||
+                        product.variants.find(
+                          (v) => v.variant_id === selectedVariantId,
+                        )?.stock_quantity === 0
+                          ? "bg-gray-400 text-white cursor-not-allowed grayscale"
                           : "bg-green-900 text-white hover:bg-green-800 hover:shadow-green-900/30"
                       }`}
                     >
                       <ShoppingBag className="mr-3" size={24} />
-                      {addingToCart
-                        ? "Adding to Cart..."
-                        : `Add to Cart - Rs. ${((product.variants.find((v) => v.variant_id === selectedVariantId)?.price || 0) * quantity).toLocaleString()}`}
+                      {product.variants.find(
+                        (v) => v.variant_id === selectedVariantId,
+                      )?.stock_quantity === 0
+                        ? "Sold Out"
+                        : addingToCart
+                          ? "Adding to Cart..."
+                          : `Add to Cart - Rs. ${((product.variants.find((v) => v.variant_id === selectedVariantId)?.price || 0) * quantity).toLocaleString()}`}
                     </button>
                   </div>
                 </div>

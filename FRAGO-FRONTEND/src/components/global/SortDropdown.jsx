@@ -1,9 +1,12 @@
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 const SortDropdown = ({ sortBy, setSortBy }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [dropdownPos, setDropdownPos] = useState(null);
+  const buttonRef = useRef(null);
+  const panelRef = useRef(null);
 
   const options = [
     { label: "Newest Arrivals", value: "newest" },
@@ -14,19 +17,74 @@ const SortDropdown = ({ sortBy, setSortBy }) => {
 
   const activeLabel = options.find((o) => o.value === sortBy)?.label;
 
+  // Recalculate dropdown position whenever it opens
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + window.scrollY + 8,
+        right: window.innerWidth - rect.right,
+      });
+    } else {
+      setDropdownPos(null);
+    }
+  }, [isOpen]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e) => {
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target) &&
+        panelRef.current &&
+        !panelRef.current.contains(e.target)
+      ) {
         setIsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen]);
+
+  const dropdownPanel =
+    isOpen && dropdownPos
+      ? createPortal(
+          <div
+            ref={panelRef}
+            style={{
+              position: "absolute",
+              top: dropdownPos.top,
+              right: dropdownPos.right,
+              zIndex: 9999,
+            }}
+            className="w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl py-2"
+          >
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  setSortBy(option.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-6 py-3 text-sm transition-colors ${
+                  sortBy === option.value
+                    ? "bg-green-50 text-green-900 font-bold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-3 px-6 py-3 bg-white hover:bg-gray-50 border border-gray-100 rounded-full transition-all duration-300 text-sm font-medium text-gray-700 shadow-sm"
       >
@@ -38,26 +96,7 @@ const SortDropdown = ({ sortBy, setSortBy }) => {
         />
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                setSortBy(option.value);
-                setIsOpen(false);
-              }}
-              className={`w-full text-left px-6 py-3 text-sm transition-colors ${
-                sortBy === option.value
-                  ? "bg-green-50 text-green-900 font-bold"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
+      {dropdownPanel}
     </div>
   );
 };

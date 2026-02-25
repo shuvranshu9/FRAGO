@@ -1,5 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { Eye, Package, Heart, ShoppingBag } from "lucide-react";
+import {
+  Eye,
+  Package,
+  Heart,
+  ShoppingBag,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { generateSlug } from "../../utils/slug";
@@ -30,8 +37,18 @@ const ProductCard = ({ product }) => {
 
   const startingPrice = getStartingPrice();
 
+  const getTotalStock = () => {
+    if (!product.variants || product.variants.length === 0) return 0;
+    return product.variants.reduce(
+      (sum, v) => sum + (v.stock_quantity || 0),
+      0,
+    );
+  };
+
+  const totalStock = getTotalStock();
+
   const handleQuickAdd = async (e) => {
-    e.preventDefault(); // Prevent navigating if this was wrapped in a Link, though it's inside a button
+    e.preventDefault();
     e.stopPropagation();
 
     const variantId = getCheapestVariantId();
@@ -52,7 +69,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="group flex flex-col items-center bg-white rounded-3xl p-4 transition-all duration-500 hover:shadow-xl hover:shadow-gray-200/50 border border-transparent hover:border-gray-50">
-      <div className="relative w-full aspect-[4/5] overflow-hidden rounded-2xl bg-[#F8F8F8] mb-6">
+      <div className="relative w-full aspect-[4/5] overflow-hidden rounded-xl bg-[#F8F8F8] mb-4">
         {product.images && product.images.length > 0 ? (
           <img
             src={product.images[0]}
@@ -61,7 +78,7 @@ const ProductCard = ({ product }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300">
-            <Package size={60} strokeWidth={1} />
+            <Package size={40} strokeWidth={1} />
           </div>
         )}
 
@@ -115,30 +132,54 @@ const ProductCard = ({ product }) => {
         )}
       </div>
 
-      <div className="text-center w-full px-2">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-2">
+      <div className="text-center w-full px-1">
+        <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-1 sm:mb-2">
           {product.brand}
         </p>
         <Link
           to={`/product/${productSlug}`}
           state={{ from: location.pathname }}
         >
-          <h3 className="text-xl font-serif font-bold text-gray-900 mb-2 group-hover:text-green-900 transition-colors">
+          <h3 className="text-sm sm:text-base lg:text-lg font-serif font-bold text-gray-900 mb-1 sm:mb-2 group-hover:text-green-900 transition-colors">
             {product.name}
           </h3>
         </Link>
 
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex flex-col items-center justify-center gap-1 sm:gap-2">
           {startingPrice ? (
-            <p className="font-bold text-gray-800 tracking-tight">
-              <span className="text-xs text-gray-400 mr-1 font-normal italic">
+            <p className="text-xs sm:text-sm font-bold text-gray-800 tracking-tight">
+              <span className="text-[10px] sm:text-xs text-gray-400 mr-1 font-normal italic">
                 Starts at
               </span>
               Rs. {startingPrice.toLocaleString()}
             </p>
           ) : (
-            <p className="text-xs text-gray-400 italic">Price on request</p>
+            <p className="text-[10px] text-gray-400 italic">Price on request</p>
           )}
+
+          {/* Stock Status Badge */}
+          <div className="mt-0.5 sm:mt-1">
+            {totalStock > 0 ? (
+              <span
+                className={`flex items-center text-[7px] sm:text-[9px] font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full ${
+                  totalStock > 5
+                    ? "text-green-700 bg-green-100/50"
+                    : "text-orange-700 bg-orange-100/50"
+                }`}
+              >
+                {totalStock > 5 ? (
+                  <CheckCircle2 size={8} className="mr-1" />
+                ) : (
+                  <AlertTriangle size={8} className="mr-1" />
+                )}
+                In Stock: {totalStock}
+              </span>
+            ) : (
+              <span className="flex items-center text-[7px] sm:text-[9px] font-bold text-red-700 uppercase bg-red-100/50 px-1.5 sm:px-2 py-0.5 rounded-full">
+                Sold Out
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
