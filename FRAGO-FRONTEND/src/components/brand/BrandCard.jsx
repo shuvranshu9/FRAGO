@@ -12,7 +12,7 @@ const BrandCard = ({ brand }) => {
   return (
     <div className="group relative bg-[#FAF6F3] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
       {/* Brand Image/Logo Container */}
-      <div className="aspect-[16/10] overflow-hidden bg-white flex items-center justify-center p-8">
+      <div className="aspect-16/10 overflow-hidden bg-white flex items-center justify-center p-8">
         <img
           src={brand.logo}
           alt={brand.name}
