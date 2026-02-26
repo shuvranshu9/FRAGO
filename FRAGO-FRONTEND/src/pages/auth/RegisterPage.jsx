@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import LogoImg from "../../assets/FRAGO.png";
+import LogoImg from "../../assets/global/FRAGO.png";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";

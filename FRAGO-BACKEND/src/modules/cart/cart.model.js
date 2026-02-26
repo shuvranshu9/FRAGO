@@ -102,7 +102,7 @@ export const addToCart = async (userId, variantId, quantity) => {
 
 // Update item quantity
 export const updateCartItemQuantity = async (userId, cartItemId, quantity) => {
-  // Verify cart item belongs to user's cart to prevent unauthorized updates
+  // Verify cart item belongs to user's cart
   const [valid] = await pool.query(
     `
         SELECT ci.cart_item_id 

@@ -217,31 +217,51 @@ export const updatePerfume = async (perfume_id, data) => {
       ],
     );
 
-    // Handle variants
+    // Handle variants with safe UPSERT
     if (data.variants) {
       const variants = JSON.parse(
         typeof data.variants === "string" ? data.variants : "[]",
       );
-      await conn.query("DELETE FROM perfume_variant WHERE perfume_id = ?", [
-        perfume_id,
-      ]);
 
-      if (variants.length > 0) {
-        const variantValues = variants.map((v) => [
-          perfume_id,
-          v.size_ml,
-          v.price,
-          v.stock_quantity,
-        ]);
+      for (const v of variants) {
+        if (v.variant_id) {
+          await conn.query(
+            `UPDATE perfume_variant SET size_ml = ?, price = ?, stock_quantity = ? WHERE variant_id = ? AND perfume_id = ?`,
+            [v.size_ml, v.price, v.stock_quantity, v.variant_id, perfume_id],
+          );
+        } else {
+          // INSERT brand-new variant
+          await conn.query(
+            `INSERT INTO perfume_variant (perfume_id, size_ml, price, stock_quantity) VALUES (?, ?, ?, ?)`,
+            [perfume_id, v.size_ml, v.price, v.stock_quantity],
+          );
+        }
+      }
 
-        await conn.query(
-          `
-          INSERT INTO perfume_variant
-          (perfume_id, size_ml, price, stock_quantity)
-          VALUES ?
-          `,
-          [variantValues],
+      // Only delete variants that are NOT referenced by any order_item
+      const incomingIds = variants
+        .filter((v) => v.variant_id)
+        .map((v) => v.variant_id);
+
+      const [existingVariants] = await conn.query(
+        `SELECT variant_id FROM perfume_variant WHERE perfume_id = ?`,
+        [perfume_id],
+      );
+
+      const toDelete = existingVariants
+        .map((v) => v.variant_id)
+        .filter((id) => !incomingIds.includes(id));
+
+      for (const variantId of toDelete) {
+        const [[{ count }]] = await conn.query(
+          `SELECT COUNT(*) as count FROM order_item WHERE variant_id = ?`,
+          [variantId],
         );
+        if (count === 0) {
+          await conn.query(`DELETE FROM perfume_variant WHERE variant_id = ?`, [
+            variantId,
+          ]);
+        }
       }
     }
 

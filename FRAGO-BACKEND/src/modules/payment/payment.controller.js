@@ -25,7 +25,7 @@ export const initiatePaymentController = async (req, res) => {
     const payload = {
       return_url: `${website_url}/order-success/${orderId}`,
       website_url: website_url,
-      amount: order.total_amount * 100, 
+      amount: order.total_amount * 100, // Khalti expects amount in paisa
       purchase_order_id: orderId.toString(),
       purchase_order_name: `Order #${orderId}`,
       customer_info: {
@@ -101,6 +101,7 @@ export const verifyPaymentController = async (req, res) => {
         status: "Completed",
       });
     } else {
+      // Update as failed or whatever status Khalti returns
       await PaymentModel.updatePaymentAndOrder(
         pidx,
         response.data.status || "Failed",

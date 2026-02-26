@@ -40,7 +40,7 @@ export const getCategoryById = async (category_id) => {
   return rows[0];
 };
 
-// Get category by Name (case-insensitive)
+// Get category by Name
 export const getCategoryByName = async (category_name) => {
   const [rows] = await pool.query(
     `
@@ -55,7 +55,6 @@ export const getCategoryByName = async (category_name) => {
 };
 
 //Update category
-
 export const updateCategory = async (
   category_id,
   { category_name, description },

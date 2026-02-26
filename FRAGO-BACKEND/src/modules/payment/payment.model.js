@@ -23,7 +23,7 @@ export const updatePaymentAndOrder = async (
   try {
     await conn.beginTransaction();
 
-    // Update payment record
+    // 1. Update payment record
     const [payment] = await conn.query(
       "SELECT order_id FROM payment WHERE pidx = ?",
       [pidx],
@@ -42,7 +42,7 @@ export const updatePaymentAndOrder = async (
       [dbStatus, transaction_id, pidx],
     );
 
-    // Update order status if payment is completed
+    // 2. Update order status if payment is completed
     if (dbStatus === "completed") {
       await conn.query(
         "UPDATE order_table SET order_status = 'paid' WHERE order_id = ?",

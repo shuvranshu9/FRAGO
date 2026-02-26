@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LogoImg from "../../assets/FRAGO.png";
+import LogoImg from "../../assets/global/FRAGO.png";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import { toast } from "react-toastify";

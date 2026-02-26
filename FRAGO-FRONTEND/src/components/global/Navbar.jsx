@@ -10,7 +10,7 @@ import {
   Package,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import Logo from "../../assets/LOGO.png";
+import Logo from "../../assets/global/LOGO.png";
 import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";

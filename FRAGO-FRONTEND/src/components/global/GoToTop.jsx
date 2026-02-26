@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronsUp } from "lucide-react";
-import GoToTopImg from "../../assets/GoToTop.png";
+import GoToTopImg from "../../assets/global/GoToTop.png";
 
 const GoToTop = () => {
   const [isVisible, setIsVisible] = useState(false);

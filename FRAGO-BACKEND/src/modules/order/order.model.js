@@ -195,7 +195,7 @@ export const cancelOrder = async (orderId, userId) => {
   }
 };
 
-// Update order 
+// Update order
 export const updateOrder = async (orderId, userId, updatedItems) => {
   const conn = await pool.getConnection();
   try {
