@@ -89,9 +89,8 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
-        const response = await api.get(`/perfume/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await api.get(`/perfume/${id}`, { headers });
         if (response.data.success) {
           const fetchedProduct = response.data.data;
           setProduct(fetchedProduct);
@@ -131,8 +130,7 @@ const ProductDetailsPage = () => {
           );
           if (myReview) setAlreadyReviewed(true);
           else {
-            // Buyer check via order presence (server handles this on POST, but we can optimistically check)
-            setCanReview(true); // Will be denied by server if not a buyer
+            setCanReview(true); 
           }
         }
       } catch {
@@ -289,7 +287,7 @@ const ProductDetailsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Image Section */}
           <div className="relative group/gallery">
-            <div className="aspect-[4/5] bg-gray-50 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="aspect-4/5 bg-gray-50 rounded-3xl overflow-hidden shadow-2xl relative">
               {product.images && product.images.length > 0 ? (
                 <>
                   <img
@@ -350,7 +348,7 @@ const ProductDetailsPage = () => {
                   <button
                     key={idx}
                     onClick={() => setCurrentImageIndex(idx)}
-                    className={`relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-300 ${
+                    className={`relative w-24 h-24 shrink-0 rounded-2xl overflow-hidden border-2 transition-all duration-300 ${
                       idx === currentImageIndex
                         ? "border-green-900 ring-4 ring-green-900/10 scale-95"
                         : "border-transparent hover:border-gray-200"
@@ -684,7 +682,7 @@ const ProductDetailsPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-gray-50 rounded-[2rem] p-8 border border-gray-100/50">
+                  <div className="bg-gray-50 rounded-4xl p-8 border border-gray-100/50">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
                       Sold By
                     </p>
@@ -779,7 +777,7 @@ const ProductDetailsPage = () => {
             </div>
           </div>
 
-          {/* Review Form — shown to logged-in potential buyers only */}
+          {/* Review Form */}
           {token && user && !alreadyReviewed && canReview && (
             <form
               onSubmit={handleSubmitReview}
@@ -847,6 +845,26 @@ const ProductDetailsPage = () => {
                 </button>
               </div>
             </form>
+          )}
+          {/* Guest Login Prompt */}
+          {!token && !user && (
+            <div className="bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-200 text-center mb-8">
+              <ShoppingBag size={40} className="mx-auto text-gray-300 mb-3" />
+              <h3 className="text-lg font-serif font-bold text-gray-900 mb-2">
+                Share Your Experience
+              </h3>
+              <p className="text-gray-500 mb-4 max-w-sm mx-auto">
+                Only verified purchasers can leave reviews. Please sign in to
+                share your thoughts on this fragrance.
+              </p>
+              <Link
+                to="/login"
+                state={{ from: location.pathname }}
+                className="inline-flex items-center px-6 py-2 bg-green-900 text-white rounded-full text-sm font-bold hover:bg-green-800 transition-all shadow-lg hover:shadow-green-900/20"
+              >
+                Sign In to Review
+              </Link>
+            </div>
           )}
 
           {alreadyReviewed && (
@@ -1001,7 +1019,6 @@ const ProductDetailsPage = () => {
             </div>
           )}
         </div>
-        {/* ==================== END REVIEW SECTION ==================== */}
       </div>
     </div>
   );

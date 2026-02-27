@@ -56,7 +56,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    let isExpiredHandled = false;
+
     const handleSessionExpired = () => {
+      if (isExpiredHandled) return;
+      isExpiredHandled = true;
+
       logout();
       toast.error("Session Expired please log in");
       navigate("/login");
