@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   X,
   Bot,
@@ -11,6 +11,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import api from "../../utils/api";
+import { generateSlug } from "../../utils/slug";
 import { Link } from "react-router-dom";
 
 const Recommendation = ({ isOpen, onClose }) => {
@@ -22,6 +23,7 @@ const Recommendation = ({ isOpen, onClose }) => {
   });
   const [selections, setSelections] = useState({
     mood: "",
+    gender: "",
     category_id: "",
     place: "",
   });
@@ -74,13 +76,14 @@ const Recommendation = ({ isOpen, onClose }) => {
   }, [messages, loading]);
 
   const handleSelection = async (type, value) => {
-    // Add user message
-    const userMsg = {
-      id: generateId(),
-      type: "user",
-      text: value,
-    };
-    setMessages((prev) => [...prev, userMsg]);
+    if (type !== "category_id") {
+      const userMsg = {
+        id: generateId(),
+        type: "user",
+        text: value,
+      };
+      setMessages((prev) => [...prev, userMsg]);
+    }
 
     // Update selections
     const newSelections = { ...selections, [type]: value };
@@ -96,14 +99,14 @@ const Recommendation = ({ isOpen, onClose }) => {
           {
             id: generateId(),
             type: "bot",
-            text: `Wonderful! Now, who are we looking for? 👤`,
+            text: `Wonderful! Who are we looking for? 👤`,
             isQuestion: true,
-            optionsType: "categories",
+            optionsType: "gender",
           },
         ]);
         setStep(2);
       }, 600);
-    } else if (type === "category_id") {
+    } else if (type === "gender") {
       setLoading(true);
       setTimeout(() => {
         setLoading(false);
@@ -112,36 +115,61 @@ const Recommendation = ({ isOpen, onClose }) => {
           {
             id: generateId(),
             type: "bot",
-            text: `Perfect. Finally, which place or occasion are you visiting? 📍`,
+            text: `Perfect. Which fragrance family or category do they prefer? 🧪`,
             isQuestion: true,
-            optionsType: "places",
+            optionsType: "categories",
           },
         ]);
         setStep(3);
       }, 600);
+    } else if (type === "category_id") {
+      setLoading(true);
+      setTimeout(() => {
+        setLoading(false);
+        const text = value
+          ? `Perfect. I'll search for fragrance in that category. And finally, what's the occasion? 📍`
+          : `No problem! I'll look across all families. And finally, what's the occasion? 📍`;
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: generateId(),
+            type: "bot",
+            text: text,
+            isQuestion: true,
+            optionsType: "places",
+          },
+        ]);
+        setStep(4);
+      }, 600);
     } else if (type === "place") {
       setLoading(true);
-      setStep(4);
+      setStep(5);
       try {
         const response = await api.get("/recommend", {
           params: {
-            mood: selections.mood,
-            category_id: selections.category_id,
-            place: value, // use the current value directly
+            mood: newSelections.mood,
+            gender: newSelections.gender,
+            category_id: newSelections.category_id || null, // handle skipped category
+            place: value,
           },
         });
-        setResults(response.data.data);
+        setResults(response.data.data); // Restored setResults
         setTimeout(() => {
           setLoading(false);
+          const count = response.data.data.length;
           setMessages((prev) => [
             ...prev,
             {
               id: generateId(),
               type: "bot",
-              text: `I've found ${response.data.data.length} matches for you! Check them out below:`,
+              text:
+                count > 0
+                  ? `I've found ${count} perfect matches for you! ✨`
+                  : `I couldn't find an exact match for that specific combination, but click below to see our best available suggestions! 🔎`,
+              isResultAction: true,
             },
           ]);
-          setStep(5);
         }, 1000);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
@@ -160,7 +188,7 @@ const Recommendation = ({ isOpen, onClose }) => {
 
   const resetChat = () => {
     setResults([]);
-    setSelections({ mood: "", category_id: "", place: "" });
+    setSelections({ mood: "", gender: "", category_id: "", place: "" });
     setMessages([
       {
         id: generateId(),
@@ -241,6 +269,18 @@ const Recommendation = ({ isOpen, onClose }) => {
                   >
                     {msg.text}
                   </div>
+                  {msg.isResultAction && (
+                    <button
+                      onClick={() => setStep(6)}
+                      className="mt-3 flex items-center space-x-2 px-6 py-2.5 bg-green-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-green-800 transition-all shadow-md group"
+                    >
+                      <span>View My Recommendations</span>
+                      <ChevronRight
+                        size={14}
+                        className="group-hover:translate-x-1 transition-transform"
+                      />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -262,7 +302,7 @@ const Recommendation = ({ isOpen, onClose }) => {
           )}
 
           {/* User selection area (Options) */}
-          {!loading && step < 4 && (
+          {!loading && step < 5 && (
             <div className="pl-11 grid grid-cols-2 gap-2 mt-4">
               {step === 1 &&
                 options.moods.map((mood) => (
@@ -281,14 +321,14 @@ const Recommendation = ({ isOpen, onClose }) => {
                   </button>
                 ))}
               {step === 2 &&
-                options.categories.map((cat) => (
+                ["Men", "Women", "Unisex"].map((g) => (
                   <button
-                    key={cat}
-                    onClick={() => handleSelection("category_id", cat)}
+                    key={g}
+                    onClick={() => handleSelection("gender", g)}
                     className="flex items-center justify-between px-4 py-3 bg-white border border-green-100 rounded-xl hover:border-green-600 hover:bg-green-50 transition-all text-sm font-medium text-gray-700 group"
                   >
                     <span className="flex items-center">
-                      <User size={16} className="mr-2 text-green-700" /> {cat}
+                      <User size={16} className="mr-2 text-green-700" /> {g}
                     </span>
                     <ChevronRight
                       size={14}
@@ -296,7 +336,49 @@ const Recommendation = ({ isOpen, onClose }) => {
                     />
                   </button>
                 ))}
-              {step === 3 &&
+              {step === 3 && (
+                <>
+                  {options.categories.map((cat) => (
+                    <button
+                      key={cat.category_id}
+                      onClick={() => {
+                        const userMsg = {
+                          id: generateId(),
+                          type: "user",
+                          text: cat.category_name,
+                        };
+                        setMessages((prev) => [...prev, userMsg]);
+                        handleSelection("category_id", cat.category_id);
+                      }}
+                      className="flex items-center justify-between px-4 py-3 bg-white border border-green-100 rounded-xl hover:border-green-600 hover:bg-green-50 transition-all text-sm font-medium text-gray-700 group"
+                    >
+                      <span className="flex items-center">
+                        <Sparkles size={16} className="mr-2 text-green-700" />{" "}
+                        {cat.category_name}
+                      </span>
+                      <ChevronRight
+                        size={14}
+                        className="text-gray-300 group-hover:text-green-600 transition-colors"
+                      />
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const userMsg = {
+                        id: generateId(),
+                        type: "user",
+                        text: "Show All Families",
+                      };
+                      setMessages((prev) => [...prev, userMsg]);
+                      handleSelection("category_id", null);
+                    }}
+                    className="col-span-2 flex items-center justify-center space-x-2 py-3 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 hover:border-green-300 transition-all text-sm font-bold text-green-900 shadow-sm"
+                  >
+                    <span>I'm Open to Any Category</span>
+                  </button>
+                </>
+              )}
+              {step === 4 &&
                 options.places.map((place) => (
                   <button
                     key={place}
@@ -317,25 +399,28 @@ const Recommendation = ({ isOpen, onClose }) => {
           )}
 
           {/* Results Display */}
-          {step === 5 && (
+          {step === 6 && (
             <div className="space-y-4 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {results.length > 0 ? (
                   results.map((perfume) => (
                     <Link
-                      to={`/product/${perfume.product_id || perfume.id}`}
-                      key={perfume.id}
+                      to={`/product/${generateSlug(perfume.name, perfume.perfume_id)}`}
+                      key={perfume.perfume_id}
                       className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all flex flex-col"
                       onClick={onClose}
                     >
                       <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
                         <img
-                          src={perfume.image_url || "/placeholder-perfume.jpg"}
+                          src={
+                            (perfume.images && perfume.images[0]) ||
+                            "/placeholder-perfume.jpg"
+                          }
                           alt={perfume.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold text-green-900 shadow-sm uppercase tracking-wider">
-                          {perfume.brand_name}
+                          {perfume.brand}
                         </div>
                       </div>
                       <div className="p-3">
@@ -344,10 +429,14 @@ const Recommendation = ({ isOpen, onClose }) => {
                         </h4>
                         <div className="flex items-center justify-between mt-1">
                           <span className="text-green-700 font-bold text-sm">
-                            Rs. {perfume.price}
+                            Rs.{" "}
+                            {(perfume.variants &&
+                              perfume.variants[0]?.price.toLocaleString()) ||
+                              "N/A"}
                           </span>
                           <span className="text-[10px] text-gray-400 capitalize">
-                            {perfume.gender} • {perfume.mood} • {perfume.place}
+                            {perfume.gender} • {perfume.mood} •{" "}
+                            {perfume.scent_type}
                           </span>
                         </div>
                       </div>
