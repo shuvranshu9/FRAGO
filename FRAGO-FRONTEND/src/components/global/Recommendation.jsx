@@ -146,12 +146,19 @@ const Recommendation = ({ isOpen, onClose }) => {
       setLoading(true);
       setStep(5);
       try {
+        console.log("User Selections for Recommendation:", {
+          mood: newSelections.mood,
+          gender: newSelections.gender,
+          category_id: newSelections.category_id,
+          place: value,
+        });
+
         const response = await api.get("/recommend", {
           params: {
-            mood: newSelections.mood,
-            gender: newSelections.gender,
-            category_id: newSelections.category_id || null, // handle skipped category
-            place: value,
+            mood: newSelections.mood.toLowerCase(),
+            gender: newSelections.gender.toLowerCase(),
+            category_id: newSelections.category_id,
+            place: value.toLowerCase(),
           },
         });
         setResults(response.data.data); // Restored setResults
@@ -390,53 +397,47 @@ const Recommendation = ({ isOpen, onClose }) => {
           {step === 6 && (
             <div className="space-y-4 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {results.length > 0 ? (
-                  results.map((perfume) => (
-                    <Link
-                      to={`/product/${generateSlug(perfume.name, perfume.perfume_id)}`}
-                      key={perfume.perfume_id}
-                      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all flex flex-col"
-                      onClick={onClose}
-                    >
-                      <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
-                        <img
-                          src={
-                            (perfume.images && perfume.images[0]) ||
-                            "/placeholder-perfume.jpg"
-                          }
-                          alt={perfume.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold text-green-900 shadow-sm uppercase tracking-wider">
-                          {perfume.brand}
+                {results.length > 0
+                  ? results.map((perfume) => (
+                      <Link
+                        to={`/product/${generateSlug(perfume.name, perfume.perfume_id)}`}
+                        key={perfume.perfume_id}
+                        className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all flex flex-col"
+                        onClick={onClose}
+                      >
+                        <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+                          <img
+                            src={
+                              (perfume.images && perfume.images[0]) ||
+                              "/placeholder-perfume.jpg"
+                            }
+                            alt={perfume.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold text-green-900 shadow-sm uppercase tracking-wider">
+                            {perfume.brand}
+                          </div>
                         </div>
-                      </div>
-                      <div className="p-3">
-                        <h4 className="font-semibold text-sm text-gray-900 truncate">
-                          {perfume.name}
-                        </h4>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-green-700 font-bold text-sm">
-                            Rs.{" "}
-                            {(perfume.variants &&
-                              perfume.variants[0]?.price.toLocaleString()) ||
-                              "N/A"}
-                          </span>
-                          <span className="text-[10px] text-gray-400 capitalize">
-                            {perfume.gender} • {perfume.mood} •{" "}
-                            {perfume.scent_type}
-                          </span>
+                        <div className="p-3">
+                          <h4 className="font-semibold text-sm text-gray-900 truncate">
+                            {perfume.name}
+                          </h4>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-green-700 font-bold text-sm">
+                              Rs.{" "}
+                              {(perfume.variants &&
+                                perfume.variants[0]?.price.toLocaleString()) ||
+                                "N/A"}
+                            </span>
+                            <span className="text-[10px] text-gray-400 capitalize">
+                              {perfume.gender} • {perfume.mood} •{" "}
+                              {perfume.scent_type}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <div className="col-span-full py-8 text-center text-gray-500">
-                    <p>
-                      I couldn't find any perfect matches for that combination.
-                    </p>
-                  </div>
-                )}
+                      </Link>
+                    ))
+                  : null}
               </div>
               <button
                 onClick={resetChat}
