@@ -68,6 +68,8 @@ const Navbar = () => {
   };
 
   // Get active state for specific vendor paths
+  const isVendorDashboardActive =
+    location.pathname.startsWith("/vendor/dashboard");
   const isVendorProductsActive =
     location.pathname.startsWith("/vendor/products");
   const isVendorCategoriesActive =
@@ -250,6 +252,19 @@ const Navbar = () => {
 
               {isAuthenticated && user?.role === "vendor" && (
                 <Link
+                  to="/vendor/dashboard"
+                  className={`uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-green-900 after:transition-all ${
+                    isVendorDashboardActive
+                      ? "text-green-900 after:w-full"
+                      : "text-gray-500 hover:text-green-900 after:w-0 hover:after:w-full"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+              )}
+
+              {isAuthenticated && user?.role === "vendor" && (
+                <Link
                   to="/vendor/products"
                   className={`uppercase text-[13px] font-semibold tracking-widest transition-colors relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-green-900 after:transition-all ${
                     isVendorProductsActive
@@ -352,6 +367,23 @@ const Navbar = () => {
                       </Link>
                     );
                   },
+                )}
+
+                {isAuthenticated && user?.role === "vendor" && (
+                  <Link
+                    to="/vendor/dashboard"
+                    className={`block px-3 py-3.5 text-base font-medium rounded-lg transition-colors border-b border-gray-50 last:border-0 ${
+                      isVendorDashboardActive
+                        ? "text-green-900 bg-green-50"
+                        : "text-gray-700 hover:text-green-900 hover:bg-green-50"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                    {isVendorDashboardActive && (
+                      <span className="ml-2 text-green-600 text-xs">•</span>
+                    )}
+                  </Link>
                 )}
 
                 {isAuthenticated && user?.role === "vendor" && (

@@ -10,6 +10,8 @@ import {
   updateOrderStatusController,
   cancelOrderController,
   updateOrderController,
+  getVendorStatsController,
+  getVendorOrdersController,
 } from "./order.controller.js";
 
 const router = express.Router();
@@ -18,6 +20,11 @@ router.use(verifyToken);
 
 router.post("/", checkoutController);
 router.get("/", getMyOrdersController);
+
+// Vendor endpoints (More specific routes first)
+router.get("/vendor/stats", requireVendor, getVendorStatsController);
+router.get("/vendor/orders", requireVendor, getVendorOrdersController);
+
 router.get("/:orderId", getOrderDetailsController);
 router.patch("/:orderId/cancel", cancelOrderController);
 router.put("/:orderId", updateOrderController);

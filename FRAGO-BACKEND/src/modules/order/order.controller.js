@@ -169,3 +169,27 @@ export const updateOrderController = async (req, res) => {
       .json({ message: err.message || "Failed to update order" });
   }
 };
+
+// Get vendor statistics
+export const getVendorStatsController = async (req, res) => {
+  try {
+    const vendorId = req.user.userID;
+    const stats = await OrderModel.getVendorStats(vendorId);
+    res.json(stats);
+  } catch (err) {
+    console.error("Error fetching vendor stats:", err);
+    res.status(500).json({ message: "Failed to fetch vendor statistics" });
+  }
+};
+
+// Get vendor orders
+export const getVendorOrdersController = async (req, res) => {
+  try {
+    const vendorId = req.user.userID;
+    const orders = await OrderModel.getVendorOrders(vendorId);
+    res.json(orders);
+  } catch (err) {
+    console.error("Error fetching vendor orders:", err);
+    res.status(500).json({ message: "Failed to fetch vendor orders" });
+  }
+};

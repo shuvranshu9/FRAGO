@@ -295,3 +295,74 @@ export const getAllOrders = async () => {
   );
   return rows;
 };
+// Get vendor stats
+export const getVendorStats = async (vendorId) => {
+  const [[revenue]] = await pool.query(
+    `SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as totalRevenue
+     FROM order_item oi
+     JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+     JOIN perfume p ON pv.perfume_id = p.perfume_id
+     JOIN order_table o ON oi.order_id = o.order_id
+     WHERE p.vendor_id = ? AND o.order_status != 'cancelled'`,
+    [vendorId]
+  );
+
+  const [[ordersCount]] = await pool.query(
+    `SELECT COUNT(DISTINCT oi.order_id) as totalOrders
+     FROM order_item oi
+     JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+     JOIN perfume p ON pv.perfume_id = p.perfume_id
+     WHERE p.vendor_id = ?`,
+    [vendorId]
+  );
+
+  const [statusBreakdown] = await pool.query(
+    `SELECT o.order_status, COUNT(DISTINCT oi.order_id) as count
+     FROM order_item oi
+     JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+     JOIN perfume p ON pv.perfume_id = p.perfume_id
+     JOIN order_table o ON oi.order_id = o.order_id
+     WHERE p.vendor_id = ?
+     GROUP BY o.order_status`,
+    [vendorId]
+  );
+
+  const [[paidAmount]] = await pool.query(
+    `SELECT COALESCE(SUM(oi.price * oi.quantity), 0) as totalPaid
+     FROM order_item oi
+     JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+     JOIN perfume p ON pv.perfume_id = p.perfume_id
+     JOIN order_table o ON oi.order_id = o.order_id
+     WHERE p.vendor_id = ? AND o.order_status IN ('paid', 'delivered', 'shipped')`,
+    [vendorId]
+  );
+
+  return {
+    revenue: revenue.totalRevenue,
+    orders: ordersCount.totalOrders,
+    paid: paidAmount.totalPaid,
+    statusBreakdown
+  };
+};
+
+// Get vendor-specific orders
+export const getVendorOrders = async (vendorId) => {
+  const [rows] = await pool.query(
+    `SELECT 
+        o.order_id, 
+        o.order_status, 
+        o.created_at,
+        u.full_name as customer_name,
+        SUM(oi.price * oi.quantity) as vendor_total_amount
+     FROM order_table o
+     JOIN user u ON o.user_id = u.user_id
+     JOIN order_item oi ON o.order_id = oi.order_id
+     JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+     JOIN perfume p ON pv.perfume_id = p.perfume_id
+     WHERE p.vendor_id = ?
+     GROUP BY o.order_id
+     ORDER BY o.created_at DESC`,
+    [vendorId]
+  );
+  return rows;
+};

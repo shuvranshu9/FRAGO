@@ -22,6 +22,7 @@ import PerfumesPage from "./pages/perfume/PerfumesPage.jsx";
 import VendorProductsPage from "./pages/vendor/VendorProductsPage.jsx";
 import VendorProductFormPage from "./pages/vendor/VendorProductFormPage.jsx";
 import VendorCategoriesPage from "./pages/vendor/VendorCategoriesPage.jsx";
+import VendorDashboardPage from "./pages/vendor/VendorDashboardPage.jsx";
 import CheckoutPage from "./pages/cart/CheckoutPage.jsx";
 import CartPage from "./pages/cart/CartPage.jsx";
 import OrderSuccessPage from "./pages/order/OrderSuccessPage.jsx";
@@ -59,6 +60,10 @@ export default function App() {
 
               {/* Vendor Specific Routes */}
               <Route element={<ProtectedRoute allowedRoles={["vendor"]} />}>
+                <Route
+                  path="/vendor/dashboard"
+                  element={<VendorDashboardPage />}
+                />
                 <Route
                   path="/vendor/products"
                   element={<VendorProductsPage />}
