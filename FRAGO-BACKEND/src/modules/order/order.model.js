@@ -304,7 +304,7 @@ export const getVendorStats = async (vendorId) => {
      JOIN perfume p ON pv.perfume_id = p.perfume_id
      JOIN order_table o ON oi.order_id = o.order_id
      WHERE p.vendor_id = ? AND o.order_status != 'cancelled'`,
-    [vendorId]
+    [vendorId],
   );
 
   const [[ordersCount]] = await pool.query(
@@ -313,7 +313,7 @@ export const getVendorStats = async (vendorId) => {
      JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
      JOIN perfume p ON pv.perfume_id = p.perfume_id
      WHERE p.vendor_id = ?`,
-    [vendorId]
+    [vendorId],
   );
 
   const [statusBreakdown] = await pool.query(
@@ -324,7 +324,7 @@ export const getVendorStats = async (vendorId) => {
      JOIN order_table o ON oi.order_id = o.order_id
      WHERE p.vendor_id = ?
      GROUP BY o.order_status`,
-    [vendorId]
+    [vendorId],
   );
 
   const [[paidAmount]] = await pool.query(
@@ -334,14 +334,14 @@ export const getVendorStats = async (vendorId) => {
      JOIN perfume p ON pv.perfume_id = p.perfume_id
      JOIN order_table o ON oi.order_id = o.order_id
      WHERE p.vendor_id = ? AND o.order_status IN ('paid', 'delivered', 'shipped')`,
-    [vendorId]
+    [vendorId],
   );
 
   return {
     revenue: revenue.totalRevenue,
     orders: ordersCount.totalOrders,
     paid: paidAmount.totalPaid,
-    statusBreakdown
+    statusBreakdown,
   };
 };
 
@@ -353,7 +353,19 @@ export const getVendorOrders = async (vendorId) => {
         o.order_status, 
         o.created_at,
         u.full_name as customer_name,
-        SUM(oi.price * oi.quantity) as vendor_total_amount
+        SUM(oi.price * oi.quantity) as vendor_total_amount,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'item_id', oi.order_item_id,
+            'name', p.name,
+            'brand', p.brand,
+            'quantity', oi.quantity,
+            'price', oi.price,
+            'variant_id', pv.variant_id,
+            'size_ml', pv.size_ml,
+            'image_url', (SELECT image_url FROM perfume_image pi WHERE pi.perfume_id = p.perfume_id LIMIT 1)
+          )
+        ) as items
      FROM order_table o
      JOIN user u ON o.user_id = u.user_id
      JOIN order_item oi ON o.order_id = oi.order_id
@@ -362,7 +374,7 @@ export const getVendorOrders = async (vendorId) => {
      WHERE p.vendor_id = ?
      GROUP BY o.order_id
      ORDER BY o.created_at DESC`,
-    [vendorId]
+    [vendorId],
   );
   return rows;
 };

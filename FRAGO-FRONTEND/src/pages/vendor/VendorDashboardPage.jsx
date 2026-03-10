@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   FiShoppingBag,
@@ -7,7 +7,126 @@ import {
   FiClock,
   FiTrendingUp,
   FiBox,
+  FiEye,
+  FiX,
 } from "react-icons/fi";
+
+const getFullImageUrl = (imageUrl) => {
+  if (!imageUrl) return "";
+
+  // If it's already a full URL, return as is
+  if (imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+
+  // Ensure the path starts with a slash
+  const normalizedPath = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
+
+  // Return the full URL (adjust the base URL as needed)
+  return `http://localhost:8000${normalizedPath}`;
+};
+
+const OrderDetailsModal = ({ order, onClose }) => {
+  if (!order) return null;
+
+  let items = order.items;
+  if (typeof items === "string") {
+    try {
+      items = JSON.parse(items);
+    } catch {
+      items = [];
+    }
+  }
+
+  const isItemsValid = Array.isArray(items) && items.length > 0;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">
+              Order #{order.order_id}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Placed by {order.customer_name} on{" "}
+              {new Date(order.created_at).toLocaleDateString()}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <FiX size={24} />
+          </button>
+        </div>
+
+        <div className="p-6 max-h-[60vh] overflow-y-auto">
+          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+            Items Purchased
+          </h4>
+          <div className="space-y-4">
+            {isItemsValid ? (
+              items.map((item, idx) => (
+                <div
+                  key={item.item_id || idx}
+                  className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 bg-white"
+                >
+                  <div className="w-16 h-16 md:w-40 md:h-40 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 overflow-hidden border border-gray-200/50">
+                    {item.image_url ? (
+                      <img
+                        src={getFullImageUrl(item.image_url)}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = "none";
+                          e.target.parentElement.classList.add("fallback-icon");
+                        }}
+                      />
+                    ) : (
+                      <FiBox size={24} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      {item.brand}
+                    </p>
+                    <h5 className="text-base font-bold text-gray-900 truncate">
+                      {item.name}
+                    </h5>
+                    <p className="text-sm text-gray-500">{item.size_ml}ml</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-500">
+                      {item.quantity} x Rs. {item.price}
+                    </p>
+                    <p className="text-base font-bold text-gray-900 mt-1">
+                      Rs. {item.quantity * item.price}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 italic text-center py-4">
+                Item details not available.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="px-6 py-5 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+          <span className="text-sm font-medium text-gray-500">
+            Total Vendor Earning
+          </span>
+          <span className="text-xl font-bold text-gray-900">
+            Rs. {order.vendor_total_amount}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const VendorDashboardPage = () => {
   const [stats, setStats] = useState({
@@ -18,6 +137,7 @@ const VendorDashboardPage = () => {
   });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -94,7 +214,7 @@ const VendorDashboardPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+        <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
           Vendor Dashboard
         </h1>
         <p className="mt-2 text-gray-600">
@@ -162,6 +282,9 @@ const VendorDashboardPage = () => {
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -190,12 +313,21 @@ const VendorDashboardPage = () => {
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(order.created_at).toLocaleDateString()}
                       </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-semibold"
+                          title="View Details"
+                        >
+                          <FiEye size={16} /> Details
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="5"
+                      colSpan="6"
                       className="px-6 py-10 text-center text-gray-400"
                     >
                       No orders found yet.
@@ -249,6 +381,11 @@ const VendorDashboardPage = () => {
           </div>
         </div>
       </div>
+
+      <OrderDetailsModal
+        order={selectedOrder}
+        onClose={() => setSelectedOrder(null)}
+      />
     </div>
   );
 };
