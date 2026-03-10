@@ -32,6 +32,7 @@ export const getCartByUserId = async (userId) => {
             p.name,
             p.brand,
             p.scent_type,
+            p.vendor_id,
             (SELECT image_url FROM perfume_image pi WHERE pi.perfume_id = p.perfume_id LIMIT 1) as image
         FROM cart_item ci
         JOIN perfume_variant pv ON ci.variant_id = pv.variant_id

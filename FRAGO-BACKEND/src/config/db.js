@@ -13,4 +13,7 @@ const pool = createPool({
   queueLimit: 0
 });
 
-export default pool.promise();
+const promisePool = pool.promise();
+
+export { promisePool as pool };
+export default promisePool;

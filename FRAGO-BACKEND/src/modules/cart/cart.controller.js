@@ -1,4 +1,5 @@
 import * as CartModel from "./cart.model.js";
+import { pool } from "../../config/db.js";
 
 // Get user's cart
 export const getCartController = async (req, res) => {
@@ -20,6 +21,16 @@ export const addToCartController = async (req, res) => {
 
         if (!variantId || !quantity) {
             return res.status(400).json({ message: "Variant ID and quantity are required" });
+        }
+
+        // Validation: Vendor cannot buy their own product
+        const [variantInfo] = await pool.query(
+            "SELECT p.vendor_id, p.name FROM perfume_variant pv JOIN perfume p ON pv.perfume_id = p.perfume_id WHERE pv.variant_id = ?",
+            [variantId]
+        );
+
+        if (variantInfo.length > 0 && variantInfo[0].vendor_id === userId) {
+            return res.status(400).json({ message: `You cannot buy your own product: ${variantInfo[0].name}` });
         }
 
         await CartModel.addToCart(userId, variantId, parseInt(quantity));

@@ -13,6 +13,16 @@ export const checkoutController = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
+    // Validation: Vendor cannot buy their own product
+    const selfPurchaseItem = cart.items.find(
+      (item) => item.vendor_id === userId,
+    );
+    if (selfPurchaseItem) {
+      return res.status(400).json({
+        message: `You cannot buy your own product: ${selfPurchaseItem.name}`,
+      });
+    }
+
     // Calculate total and prepare items
     let totalAmount = 0;
     const orderItems = cart.items.map((item) => {
