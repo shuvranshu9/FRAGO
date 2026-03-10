@@ -14,6 +14,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
     scent_type: "",
     mood: "",
     origin: "",
+    gender: "UNISEX",
   });
 
   const [variants, setVariants] = useState([
@@ -36,6 +37,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
         scent_type: initialData.scent_type || "",
         mood: initialData.mood || "",
         origin: initialData.origin || "",
+        gender: initialData.gender || "UNISEX",
       });
 
       setVariants(
@@ -274,6 +276,22 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
                   placeholder="e.g. Woody, Floral"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Gender *
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                  required
+                >
+                  <option value="MEN">Men</option>
+                  <option value="WOMEN">Women</option>
+                  <option value="UNISEX">Unisex</option>
+                </select>
               </div>
             </div>
 

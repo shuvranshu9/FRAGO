@@ -10,6 +10,7 @@ export const createPerfume = async ({
   scent_type,
   mood,
   origin,
+  gender,
   variants,
   images,
 }) => {
@@ -21,8 +22,8 @@ export const createPerfume = async ({
     const [perfumeResult] = await conn.query(
       `
       INSERT INTO perfume
-      (vendor_id, category_id, name, brand, description, scent_type, mood, origin, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+      (vendor_id, category_id, name, brand, description, scent_type, mood, origin, gender, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
       `,
       [
         vendor_id,
@@ -33,6 +34,7 @@ export const createPerfume = async ({
         scent_type,
         mood,
         origin,
+        gender,
       ],
     );
 
@@ -132,6 +134,7 @@ export const getPerfumesByVendor = async (vendor_id) => {
       p.scent_type,
       p.mood,
       p.origin,
+      p.gender,
       p.vendor_id,
       p.category_id,
       (
@@ -202,7 +205,7 @@ export const updatePerfume = async (perfume_id, data) => {
     const [result] = await conn.query(
       `
       UPDATE perfume
-      SET name = ?, brand = ?, description = ?, scent_type = ?, mood = ?, origin = ?, category_id = ?
+      SET name = ?, brand = ?, description = ?, scent_type = ?, mood = ?, origin = ?, gender = ?, category_id = ?
       WHERE perfume_id = ?
       `,
       [
@@ -212,6 +215,7 @@ export const updatePerfume = async (perfume_id, data) => {
         data.scent_type,
         data.mood,
         data.origin,
+        data.gender,
         data.category_id,
         perfume_id,
       ],

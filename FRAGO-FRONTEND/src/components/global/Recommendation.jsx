@@ -347,7 +347,7 @@ const Recommendation = ({ isOpen, onClose }) => {
                             Rs. {perfume.price}
                           </span>
                           <span className="text-[10px] text-gray-400 capitalize">
-                            {perfume.mood} • {perfume.place}
+                            {perfume.gender} • {perfume.mood} • {perfume.place}
                           </span>
                         </div>
                       </div>

@@ -21,6 +21,7 @@ import {
   Store,
   Mail,
   Phone,
+  Users,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
@@ -272,6 +273,13 @@ const ProductDetailsPage = () => {
                   <Activity size={16} className="mr-2 text-green-800" />
                   {product.mood || "Elevating"}
                 </div>
+                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                <div className="flex items-center">
+                  <Users size={16} className="mr-2 text-green-800" />
+                  <span className="capitalize">
+                    {product.gender?.toLowerCase() || "Unisex"}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -476,6 +484,20 @@ const ProductDetailsPage = () => {
                     </div>
                   </div>
                 )}
+
+                <div className="flex items-start">
+                  <div className="bg-green-50 p-3 rounded-xl mr-4">
+                    <Users size={20} className="text-green-900" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+                      Gender
+                    </h4>
+                    <p className="font-medium text-gray-900 capitalize">
+                      {product.gender?.toLowerCase() || "Unisex"}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Notes Section (if available) */}

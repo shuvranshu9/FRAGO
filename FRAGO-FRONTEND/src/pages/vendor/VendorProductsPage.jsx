@@ -205,9 +205,14 @@ const VendorProductsPage = () => {
                           </h3>
                         </Link>
                       </div>
-                      <span className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
-                        {product.scent_type || "Scent"}
-                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+                          {product.scent_type || "Scent"}
+                        </span>
+                        <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+                          {product.gender || "Unisex"}
+                        </span>
+                      </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
                       <div className="text-sm font-medium text-gray-900">
