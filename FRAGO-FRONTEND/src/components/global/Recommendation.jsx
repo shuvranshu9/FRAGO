@@ -166,10 +166,10 @@ const Recommendation = ({ isOpen, onClose }) => {
               text:
                 count > 0
                   ? `I've found ${count} perfect matches for you! ✨`
-                  : `I couldn't find an exact match for that specific combination, but click below to see our best available suggestions! 🔎`,
-              isResultAction: true,
+                  : `I couldn't find an exact match for that specific combination, but here are our best available suggestions! 🔎`,
             },
           ]);
+          setStep(6);
         }, 1000);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
@@ -269,18 +269,6 @@ const Recommendation = ({ isOpen, onClose }) => {
                   >
                     {msg.text}
                   </div>
-                  {msg.isResultAction && (
-                    <button
-                      onClick={() => setStep(6)}
-                      className="mt-3 flex items-center space-x-2 px-6 py-2.5 bg-green-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-green-800 transition-all shadow-md group"
-                    >
-                      <span>View My Recommendations</span>
-                      <ChevronRight
-                        size={14}
-                        className="group-hover:translate-x-1 transition-transform"
-                      />
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
