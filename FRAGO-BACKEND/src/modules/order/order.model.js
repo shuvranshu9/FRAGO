@@ -345,8 +345,47 @@ export const getVendorStats = async (vendorId) => {
   };
 };
 
-// Get vendor-specific orders
-export const getVendorOrders = async (vendorId) => {
+// Get vendor-specific orders with pagination, filters and sort
+export const getVendorOrders = async (vendorId, { limit, offset, status, year, month, day, sortAmount }) => {
+  // Build dynamic WHERE conditions
+  const conditions = ["p.vendor_id = ?"];
+  const baseParams = [vendorId];
+
+  if (status) {
+    conditions.push("o.order_status = ?");
+    baseParams.push(status);
+  }
+  if (year) {
+    conditions.push("YEAR(o.created_at) = ?");
+    baseParams.push(Number(year));
+  }
+  if (month) {
+    conditions.push("MONTH(o.created_at) = ?");
+    baseParams.push(Number(month));
+  }
+  if (day) {
+    conditions.push("DAY(o.created_at) = ?");
+    baseParams.push(Number(day));
+  }
+
+  const whereClause = conditions.join(" AND ");
+
+  // Sorting direction for amount
+  const amountOrder =
+    sortAmount === "asc" ? "ASC" : sortAmount === "desc" ? "DESC" : null;
+
+  // Get total count for pagination (same filters, no limit/offset)
+  const [[{ total_count }]] = await pool.query(
+    `SELECT COUNT(DISTINCT o.order_id) as total_count
+     FROM order_table o
+     JOIN order_item oi ON o.order_id = oi.order_id
+     JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+     JOIN perfume p ON pv.perfume_id = p.perfume_id
+     WHERE ${whereClause}`,
+    baseParams,
+  );
+
+  // Main query with pagination
   const [rows] = await pool.query(
     `SELECT 
         o.order_id, 
@@ -371,10 +410,13 @@ export const getVendorOrders = async (vendorId) => {
      JOIN order_item oi ON o.order_id = oi.order_id
      JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
      JOIN perfume p ON pv.perfume_id = p.perfume_id
-     WHERE p.vendor_id = ?
-     GROUP BY o.order_id
-     ORDER BY o.created_at DESC`,
-    [vendorId],
+     WHERE ${whereClause}
+     GROUP BY o.order_id, o.order_status, o.created_at, u.full_name
+     ${amountOrder ? `ORDER BY vendor_total_amount ${amountOrder}` : "ORDER BY o.created_at DESC"}
+     LIMIT ? OFFSET ?`,
+    [...baseParams, limit, offset],
   );
-  return rows;
+
+  return { data: rows, total_count };
 };
+

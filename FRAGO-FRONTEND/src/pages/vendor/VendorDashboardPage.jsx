@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
+import OrderFilters from "../../components/vendor/OrderFilters";
+import Pagination from "@mui/material/Pagination";
 import {
   FiShoppingBag,
   FiDollarSign,
@@ -140,6 +142,8 @@ const OrderDetailsModal = ({ order, onClose }) => {
   );
 };
 
+const EMPTY_FILTERS = { status: "", year: "", month: "", day: "", sortAmount: "" };
+
 const VendorDashboardPage = () => {
   const [stats, setStats] = useState({
     revenue: 0,
@@ -148,22 +152,60 @@ const VendorDashboardPage = () => {
     statusBreakdown: [],
   });
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 8;
+  const [loading, setLoading] = useState(true);   // initial full-page load
+  const [isFetching, setIsFetching] = useState(false); // filter/page soft refresh
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const isFirstLoad = useRef(true);
+
+  const buildOrdersUrl = useCallback(
+    (currentPage, currentFilters) => {
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit,
+      });
+      if (currentFilters.status) params.set("status", currentFilters.status);
+      if (currentFilters.year) params.set("year", currentFilters.year);
+      if (currentFilters.month) params.set("month", currentFilters.month);
+      if (currentFilters.day) params.set("day", currentFilters.day);
+      if (currentFilters.sortAmount) params.set("sortAmount", currentFilters.sortAmount);
+      return `http://localhost:8000/api/order/vendor/orders?${params.toString()}`;
+    },
+    [limit],
+  );
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    fetchDashboardData(page, filters);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, filters]);
 
-  const fetchDashboardData = async () => {
+  const handleFiltersChange = (updatedFilters) => {
+    setFilters(updatedFilters);
+    setPage(1); // reset to first page on any filter change
+  };
+
+  const handleFiltersReset = () => {
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
+  };
+
+  const fetchDashboardData = async (currentPage, currentFilters) => {
     try {
-      setLoading(true);
+      if (isFirstLoad.current) {
+        setLoading(true);
+      } else {
+        setIsFetching(true);
+      }
+
       const token = localStorage.getItem("token");
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       const [statsRes, ordersRes] = await Promise.all([
         axios.get(`http://localhost:8000/api/order/vendor/stats`, config),
-        axios.get(`http://localhost:8000/api/order/vendor/orders`, config),
+        axios.get(buildOrdersUrl(currentPage, currentFilters), config),
       ]);
 
       setStats({
@@ -174,14 +216,19 @@ const VendorDashboardPage = () => {
           ? statsRes.data.statusBreakdown
           : [],
       });
-      setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+      setOrders(Array.isArray(ordersRes.data?.data) ? ordersRes.data.data : []);
+      setTotalPages(ordersRes.data?.totalPages || 1);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      // Ensure state remains valid on error
       setStats((prev) => ({ ...prev, statusBreakdown: [] }));
       setOrders([]);
     } finally {
-      setLoading(false);
+      if (isFirstLoad.current) {
+        isFirstLoad.current = false;
+        setLoading(false);
+      } else {
+        setIsFetching(false);
+      }
     }
   };
 
@@ -271,11 +318,15 @@ const VendorDashboardPage = () => {
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-5 border-b border-gray-50 flex justify-between items-center">
             <h2 className="text-lg font-bold text-gray-800">Recent Orders</h2>
-            <button className="text-primary text-sm font-semibold hover:underline">
-              View All
-            </button>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Filters */}
+          <OrderFilters
+            filters={filters}
+            onChange={handleFiltersChange}
+            onReset={handleFiltersReset}
+          />
+          <div className={`overflow-x-auto transition-opacity duration-200 ${isFetching ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
             <table className="w-full text-left">
               <thead className="bg-gray-50/50">
                 <tr>
@@ -349,6 +400,19 @@ const VendorDashboardPage = () => {
               </tbody>
             </table>
           </div>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center p-4 border-t border-gray-50 bg-gray-50/30">
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(event, value) => setPage(value)}
+                color="primary"
+                shape="rounded"
+                size="medium"
+              />
+            </div>
+          )}
         </div>
 
         {/* Status Breakdown / Analytics */}

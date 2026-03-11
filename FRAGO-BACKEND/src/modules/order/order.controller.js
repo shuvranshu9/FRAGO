@@ -186,8 +186,34 @@ export const getVendorStatsController = async (req, res) => {
 export const getVendorOrdersController = async (req, res) => {
   try {
     const vendorId = req.user.userID;
-    const orders = await OrderModel.getVendorOrders(vendorId);
-    res.json(orders);
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    // Filters & Sort
+    const { status, year, month, day, sortAmount } = req.query;
+
+    const { data: orders, total_count } = await OrderModel.getVendorOrders(
+      vendorId,
+      {
+        limit,
+        offset,
+        status: status || null,
+        year: year || null,
+        month: month || null,
+        day: day || null,
+        sortAmount: sortAmount || null,
+      },
+    );
+
+    res.json({
+      data: orders,
+      currentPage: page,
+      totalPages: Math.ceil(total_count / limit),
+      totalOrders: total_count,
+    });
   } catch (err) {
     console.error("Error fetching vendor orders:", err);
     res.status(500).json({ message: "Failed to fetch vendor orders" });
