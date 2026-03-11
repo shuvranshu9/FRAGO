@@ -68,6 +68,18 @@ const Recommendation = ({ isOpen, onClose }) => {
     setStep(1);
   }, []);
 
+  // Prevent background scrolling when chat is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   // Handle scrolling to bottom of chat
   useEffect(() => {
     if (scrollRef.current) {

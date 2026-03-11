@@ -22,11 +22,23 @@ const getFullImageUrl = (imageUrl) => {
   // Ensure the path starts with a slash
   const normalizedPath = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
 
-  // Return the full URL (adjust the base URL as needed)
+  // Return the full URL
   return `http://localhost:8000${normalizedPath}`;
 };
 
 const OrderDetailsModal = ({ order, onClose }) => {
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (order) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [order]);
+
   if (!order) return null;
 
   let items = order.items;
