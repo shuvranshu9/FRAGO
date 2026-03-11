@@ -159,6 +159,7 @@ export const getPerfumeById = async (perfume_id) => {
     `
         SELECT 
           p.*,
+          c.category_name AS category_name,
           u.full_name AS vendor_name,
           u.email AS vendor_email,
           u.phone AS vendor_phone,
@@ -187,6 +188,7 @@ export const getPerfumeById = async (perfume_id) => {
 
         FROM perfume p
         LEFT JOIN user u ON p.vendor_id = u.user_id
+        LEFT JOIN category c ON p.category_id = c.category_id
         WHERE p.perfume_id = ?;
     `,
     [perfume_id],

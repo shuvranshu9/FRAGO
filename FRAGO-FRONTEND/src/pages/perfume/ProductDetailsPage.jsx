@@ -263,22 +263,53 @@ const ProductDetailsPage = () => {
                   />
                 </button>
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-gray-500 text-sm">
-                <div className="flex items-center">
-                  <Wind size={16} className="mr-2 text-green-800" />
-                  {product.scent_type || "Signature Scent"}
+              <div className="grid grid-cols-2 gap-4 text-gray-500 text-sm">
+                <div className="flex items-start">
+                  <Wind size={16} className="mr-2 mt-0.5 text-green-800" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Scent Type
+                    </p>
+                    <p className="text-gray-700 font-medium">
+                      {product.scent_type || "Signature Scent"}
+                    </p>
+                  </div>
                 </div>
-                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                <div className="flex items-center">
-                  <Activity size={16} className="mr-2 text-green-800" />
-                  {product.mood || "Elevating"}
+
+                <div className="flex items-start">
+                  <Package size={16} className="mr-2 mt-0.5 text-green-800" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Category
+                    </p>
+                    <p className="text-gray-700 font-medium">
+                      {product.category_name || "Uncategorized"}
+                    </p>
+                  </div>
                 </div>
-                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                <div className="flex items-center">
-                  <Users size={16} className="mr-2 text-green-800" />
-                  <span className="capitalize">
-                    {product.gender?.toLowerCase() || "Unisex"}
-                  </span>
+
+                <div className="flex items-start">
+                  <Activity size={16} className="mr-2 mt-0.5 text-green-800" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Mood
+                    </p>
+                    <p className="text-gray-700 font-medium">
+                      {product.mood || "Elevating"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <Users size={16} className="mr-2 mt-0.5 text-green-800" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Gender
+                    </p>
+                    <p className="text-gray-700 font-medium capitalize">
+                      {product.gender?.toLowerCase() || "Unisex"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

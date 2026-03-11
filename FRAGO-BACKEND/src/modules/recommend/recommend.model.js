@@ -1,15 +1,36 @@
 import pool from "../../config/db.js";
 import { PLACE_SCENT_MAP } from "../../utils/recommendationConstants.js";
 
-export const getRecommendedPerfumes = async ({
+const parseCategoryId = (category_id) => {
+  if (category_id === null || typeof category_id === "undefined") return null;
+  if (category_id === "") return null;
+
+  const parsed = Number(category_id);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return parsed;
+};
+
+const getScentTypesForPlace = (place) => {
+  if (!place) return [];
+
+  const placeStr = String(place);
+  const matchedKey = Object.keys(PLACE_SCENT_MAP).find(
+    (k) => k.toLowerCase() === placeStr.toLowerCase(),
+  );
+
+  const scentTypes = matchedKey ? PLACE_SCENT_MAP[matchedKey] : [];
+  return scentTypes.map((s) => String(s).toLowerCase());
+};
+
+const runRecommendationQuery = async ({
   mood,
   gender,
-  category_id,
-  place,
+  categoryId,
+  scentTypes,
+  includeGender,
+  includeCategory,
+  includeScentTypes,
 }) => {
-  let scentTypes = PLACE_SCENT_MAP[place] || [];
-  scentTypes = scentTypes.map((s) => s.toLowerCase());
-
   let query = `
     SELECT 
       p.*,
@@ -29,19 +50,19 @@ export const getRecommendedPerfumes = async ({
       AND LOWER(p.mood) = ?
   `;
 
-  const queryParams = [mood.toLowerCase()];
+  const queryParams = [mood];
 
-  if (gender) {
+  if (includeGender && gender) {
     query += ` AND LOWER(p.gender) = ?`;
-    queryParams.push(gender.toLowerCase());
+    queryParams.push(gender);
   }
 
-  if (category_id) {
+  if (includeCategory && categoryId) {
     query += ` AND p.category_id = ?`;
-    queryParams.push(Number(category_id));
+    queryParams.push(categoryId);
   }
 
-  if (scentTypes.length > 0) {
+  if (includeScentTypes && scentTypes.length > 0) {
     query += ` AND LOWER(p.scent_type) IN (?)`;
     queryParams.push(scentTypes);
   }
@@ -53,6 +74,66 @@ export const getRecommendedPerfumes = async ({
   `;
 
   const [rows] = await pool.query(query, queryParams);
-
   return rows;
+};
+
+export const getRecommendedPerfumes = async ({
+  mood,
+  gender,
+  category_id,
+  place,
+}) => {
+  const normalizedMood = String(mood || "").toLowerCase();
+  const normalizedGender = gender ? String(gender).toLowerCase() : null;
+  const categoryId = parseCategoryId(category_id);
+  const scentTypes = getScentTypesForPlace(place);
+
+  // Try strict match first; if empty, progressively relax filters to return best available suggestions.
+  const attempts = [
+    {
+      includeGender: Boolean(normalizedGender),
+      includeCategory: Boolean(categoryId),
+      includeScentTypes: true,
+    },
+    // If a category was selected but yields 0 rows, drop category first (best available suggestions)
+    {
+      includeGender: Boolean(normalizedGender),
+      includeCategory: false,
+      includeScentTypes: true,
+    },
+    // If still empty, drop place scent mapping
+    {
+      includeGender: Boolean(normalizedGender),
+      includeCategory: Boolean(categoryId),
+      includeScentTypes: false,
+    },
+    {
+      includeGender: Boolean(normalizedGender),
+      includeCategory: false,
+      includeScentTypes: false,
+    },
+    // Last resort: mood-only
+    {
+      includeGender: false,
+      includeCategory: false,
+      includeScentTypes: false,
+    },
+  ];
+
+  for (const attempt of attempts) {
+    // Skip attempts that are equivalent to earlier ones when no categoryId exists
+    if (!categoryId && attempt.includeCategory) continue;
+
+    const rows = await runRecommendationQuery({
+      mood: normalizedMood,
+      gender: normalizedGender,
+      categoryId,
+      scentTypes,
+      ...attempt,
+    });
+
+    if (rows.length > 0) return rows;
+  }
+
+  return [];
 };
