@@ -1,7 +1,14 @@
 import { useMemo } from "react";
 import { FiX, FiFilter, FiArrowUp, FiArrowDown } from "react-icons/fi";
 
-const STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled"];
+const STATUSES = [
+  "pending",
+  "paid",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+];
 
 const MONTHS = [
   { value: "1", label: "January" },
@@ -21,14 +28,6 @@ const MONTHS = [
 const selectClass =
   "h-9 px-3 pr-8 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed appearance-none cursor-pointer";
 
-/**
- * Reusable order filter bar.
- *
- * Props:
- *  filters  – { status, year, month, day, sortAmount }
- *  onChange – (updatedFilters) => void
- *  onReset  – () => void
- */
 const OrderFilters = ({ filters, onChange, onReset }) => {
   const currentYear = new Date().getFullYear();
   const years = useMemo(
@@ -54,24 +53,30 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
 
   const cycleSortAmount = () => {
     const next =
-      filters.sortAmount === "" ? "asc" : filters.sortAmount === "asc" ? "desc" : "";
+      filters.sortAmount === ""
+        ? "asc"
+        : filters.sortAmount === "asc"
+          ? "desc"
+          : "";
     onChange({ ...filters, sortAmount: next });
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-6 py-3 bg-gray-50/60 border-b border-gray-100">
-      {/* Icon label */}
-      <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1">
+    <div className="flex items-center gap-2 px-6 py-3 bg-gray-50/60 border-b border-gray-100">
+      {/* Icon label — badge always rendered to reserve space */}
+      <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1 shrink-0">
         <FiFilter size={13} /> Filters
-        {activeCount > 0 && (
-          <span className="ml-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
-            {activeCount}
-          </span>
-        )}
+        <span
+          className={`ml-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none transition-opacity duration-150 ${
+            activeCount > 0 ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {activeCount || 0}
+        </span>
       </span>
 
       {/* Status */}
-      <div className="relative">
+      <div className="relative shrink-0">
         <select
           value={filters.status}
           onChange={(e) => handleChange("status", e.target.value)}
@@ -85,11 +90,13 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
             </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">▾</span>
+        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">
+          ▾
+        </span>
       </div>
 
       {/* Year */}
-      <div className="relative">
+      <div className="relative shrink-0">
         <select
           value={filters.year}
           onChange={(e) => handleChange("year", e.target.value)}
@@ -98,14 +105,18 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
         >
           <option value="">Year</option>
           {years.map((y) => (
-            <option key={y} value={y}>{y}</option>
+            <option key={y} value={y}>
+              {y}
+            </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">▾</span>
+        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">
+          ▾
+        </span>
       </div>
 
       {/* Month — only active if year selected */}
-      <div className="relative">
+      <div className="relative shrink-0">
         <select
           value={filters.month}
           onChange={(e) => handleChange("month", e.target.value)}
@@ -115,10 +126,14 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
         >
           <option value="">Month</option>
           {MONTHS.map((m) => (
-            <option key={m.value} value={m.value}>{m.label}</option>
+            <option key={m.value} value={m.value}>
+              {m.label}
+            </option>
           ))}
         </select>
-        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">▾</span>
+        <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-gray-400">
+          ▾
+        </span>
       </div>
 
       {/* Day — only active if month selected */}
@@ -135,37 +150,44 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
             handleChange("day", v);
           }
         }}
-        className="h-9 w-20 px-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+        className="h-9 w-20 shrink-0 px-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
       />
 
-      {/* Sort by amount cycle button */}
+      {/* Sort by amount — fixed width so text change never shifts row */}
       <button
         onClick={cycleSortAmount}
         title="Sort by Amount"
-        className={`flex items-center gap-1.5 h-9 px-3 rounded-xl border text-sm font-medium transition-all ${
+        className={`flex items-center justify-center gap-1.5 h-9 w-40 shrink-0 rounded-xl border text-sm font-medium transition-all ${
           filters.sortAmount
             ? "border-indigo-500 bg-indigo-50 text-indigo-700"
             : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
         }`}
       >
         {filters.sortAmount === "asc" ? (
-          <><FiArrowUp size={14} /> Amount: Low→High</>
+          <>
+            <FiArrowUp size={14} /> Amount: Low→High
+          </>
         ) : filters.sortAmount === "desc" ? (
-          <><FiArrowDown size={14} /> Amount: High→Low</>
+          <>
+            <FiArrowDown size={14} /> Amount: High→Low
+          </>
         ) : (
           <>Sort by Amount</>
         )}
       </button>
 
-      {/* Reset */}
-      {activeCount > 0 && (
-        <button
-          onClick={onReset}
-          className="flex items-center gap-1 h-9 px-3 rounded-xl border border-red-200 bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition-all"
-        >
-          <FiX size={14} /> Reset
-        </button>
-      )}
+      {/* Reset — always rendered to hold space, invisible when no active filters */}
+      <button
+        onClick={onReset}
+        disabled={activeCount === 0}
+        className={`flex items-center gap-1 h-8 w-6 shrink-0 justify-center rounded-xl border text-sm font-medium transition-all duration-150 ${
+          activeCount > 0
+            ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer"
+            : "border-transparent bg-transparent text-transparent cursor-default pointer-events-none"
+        }`}
+      >
+        <FiX size={10} />
+      </button>
     </div>
   );
 };

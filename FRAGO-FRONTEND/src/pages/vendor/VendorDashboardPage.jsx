@@ -350,12 +350,12 @@ const VendorDashboardPage = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {orders.length > 0 ? (
                   orders.map((order) => (
                     <tr
                       key={order.order_id}
-                      className="hover:bg-gray-50/30 transition-colors"
+                      className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/30 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
                         #{order.order_id}
