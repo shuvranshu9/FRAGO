@@ -275,8 +275,8 @@ const VendorDashboardPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
-      <div className="mb-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-500">
+      <div className="mb-6">
         <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
           Vendor Dashboard
         </h1>
@@ -286,7 +286,7 @@ const VendorDashboardPage = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <StatCard
           title="Total Revenue"
           value={stats.revenue}

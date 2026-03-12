@@ -75,7 +75,7 @@ const VendorProductsPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-10 pb-10 px-4 md:px-8">
+    <div className="min-h-screen bg-gray-50 pt-6 pb-10 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
