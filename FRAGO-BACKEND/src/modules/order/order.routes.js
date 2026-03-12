@@ -12,6 +12,7 @@ import {
   updateOrderController,
   getVendorStatsController,
   getVendorOrdersController,
+  getVendorTopProductsController,
 } from "./order.controller.js";
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.get("/", getMyOrdersController);
 // Vendor endpoints (More specific routes first)
 router.get("/vendor/stats", requireVendor, getVendorStatsController);
 router.get("/vendor/orders", requireVendor, getVendorOrdersController);
+router.get("/vendor/top-products", requireVendor, getVendorTopProductsController);
 
 router.get("/:orderId", getOrderDetailsController);
 router.patch("/:orderId/cancel", cancelOrderController);

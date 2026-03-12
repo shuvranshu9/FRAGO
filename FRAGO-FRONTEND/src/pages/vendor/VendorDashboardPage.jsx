@@ -4,6 +4,7 @@ import OrderFilters from "../../components/vendor/OrderFilters";
 import Pagination from "@mui/material/Pagination";
 import { alpha } from "@mui/material/styles";
 import { theme } from "../../styles/theme";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
   FiShoppingBag,
   FiDollarSign,
@@ -18,15 +19,12 @@ import {
 const getFullImageUrl = (imageUrl) => {
   if (!imageUrl) return "";
 
-  // If it's already a full URL, return as is
   if (imageUrl.startsWith("http")) {
     return imageUrl;
   }
 
-  // Ensure the path starts with a slash
   const normalizedPath = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
 
-  // Return the full URL
   return `http://localhost:8000${normalizedPath}`;
 };
 
@@ -161,6 +159,7 @@ const VendorDashboardPage = () => {
   const [isFetching, setIsFetching] = useState(false); // filter/page soft refresh
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [topProducts, setTopProducts] = useState([]);
   const isFirstLoad = useRef(true);
 
   const buildOrdersUrl = useCallback(
@@ -205,9 +204,10 @@ const VendorDashboardPage = () => {
       const token = localStorage.getItem("token");
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const [statsRes, ordersRes] = await Promise.all([
+      const [statsRes, ordersRes, topProductsRes] = await Promise.all([
         axios.get(`http://localhost:8000/api/order/vendor/stats`, config),
         axios.get(buildOrdersUrl(currentPage, currentFilters), config),
+        axios.get(`http://localhost:8000/api/order/vendor/top-products`, config),
       ]);
 
       setStats({
@@ -220,10 +220,12 @@ const VendorDashboardPage = () => {
       });
       setOrders(Array.isArray(ordersRes.data?.data) ? ordersRes.data.data : []);
       setTotalPages(ordersRes.data?.totalPages || 1);
+      setTopProducts(Array.isArray(topProductsRes.data) ? topProductsRes.data : []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       setStats((prev) => ({ ...prev, statusBreakdown: [] }));
       setOrders([]);
+      setTopProducts([]);
     } finally {
       if (isFirstLoad.current) {
         isFirstLoad.current = false;
@@ -455,10 +457,10 @@ const VendorDashboardPage = () => {
                       item.order_status === "delivered"
                         ? "bg-emerald-500"
                         : item.order_status === "paid"
-                          ? "bg-blue-500"
+                          ? "bg-blue-900"
                           : item.order_status === "pending"
-                            ? "bg-amber-500"
-                            : "bg-gray-400"
+                            ? "bg-amber-600"
+                            : "bg-gray-500"
                     }`}
                     style={{ width: `${(item.count / stats.orders) * 100}%` }}
                   ></div>
@@ -469,6 +471,76 @@ const VendorDashboardPage = () => {
               <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl">
                 <FiBox size={32} className="mx-auto mb-2 opacity-20" />
                 <p>No data to visualize yet.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Product Sales Pie Chart */}
+          <div className="mt-8 pt-6 border-t border-gray-100">
+            <h2 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
+              <FiShoppingBag className="text-[#2f5e3a]" />
+              Top Selling Products
+            </h2>
+            {topProducts.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={topProducts.map((p) => ({ name: p.name, value: Number(p.total_sold) }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={85}
+                      paddingAngle={3}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {topProducts.map((_, i) => (
+                        <Cell
+                          key={i}
+                          fill={[
+                            "#2f5e3a",
+                            "#4ade80",
+                            "#f59e0b",
+                            "#1a3824",
+                            "#10b981",
+                            "#d97706",
+                          ][i % 6]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value, name) => [`${value} units`, name]}
+                      contentStyle={{ borderRadius: 12, fontSize: 13 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 space-y-2">
+                  {topProducts.map((p, i) => (
+                    <div key={p.perfume_id} className="flex items-center gap-2 text-sm">
+                      <span
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{
+                          backgroundColor: [
+                            "#2f5e3a",
+                            "#4ade80",
+                            "#f59e0b",
+                            "#1a3824",
+                            "#10b981",
+                            "#d97706",
+                          ][i % 6],
+                        }}
+                      />
+                      <span className="text-gray-700 font-medium truncate flex-1">{p.name}</span>
+                      <span className="text-gray-900 font-bold shrink-0">{p.total_sold} sold</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl">
+                <FiBox size={32} className="mx-auto mb-2 opacity-20" />
+                <p>No product sales data yet.</p>
               </div>
             )}
           </div>

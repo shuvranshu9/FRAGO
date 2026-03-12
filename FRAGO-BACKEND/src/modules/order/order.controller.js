@@ -182,6 +182,19 @@ export const getVendorStatsController = async (req, res) => {
   }
 };
 
+// Get vendor top products (for pie chart)
+export const getVendorTopProductsController = async (req, res) => {
+  try {
+    const vendorId = req.user.userID;
+    const limit = parseInt(req.query.limit) || 6;
+    const products = await OrderModel.getVendorTopProducts(vendorId, limit);
+    res.json(products);
+  } catch (err) {
+    console.error("Error fetching vendor top products:", err);
+    res.status(500).json({ message: "Failed to fetch top products" });
+  }
+};
+
 // Get vendor orders
 export const getVendorOrdersController = async (req, res) => {
   try {

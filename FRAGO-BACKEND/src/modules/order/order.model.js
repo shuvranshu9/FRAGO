@@ -345,6 +345,28 @@ export const getVendorStats = async (vendorId) => {
   };
 };
 
+// Get top-selling products for a vendor (for pie chart)
+export const getVendorTopProducts = async (vendorId, limit = 6) => {
+  const [rows] = await pool.query(
+    `SELECT 
+       p.perfume_id,
+       p.name,
+       p.brand,
+       SUM(oi.quantity) as total_sold,
+       SUM(oi.quantity * oi.price) as total_revenue
+     FROM order_item oi
+     JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+     JOIN perfume p ON pv.perfume_id = p.perfume_id
+     JOIN order_table o ON oi.order_id = o.order_id
+     WHERE p.vendor_id = ? AND o.order_status IN ('paid', 'delivered', 'shipped')
+     GROUP BY p.perfume_id, p.name, p.brand
+     ORDER BY total_sold DESC
+     LIMIT ?`,
+    [vendorId, limit],
+  );
+  return rows;
+};
+
 // Get vendor-specific orders with pagination, filters and sort
 export const getVendorOrders = async (vendorId, { limit, offset, status, year, month, day, sortAmount }) => {
   // Build dynamic WHERE conditions
