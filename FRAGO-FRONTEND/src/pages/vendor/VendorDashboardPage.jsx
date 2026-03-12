@@ -5,6 +5,7 @@ import Pagination from "@mui/material/Pagination";
 import { alpha } from "@mui/material/styles";
 import { theme } from "../../styles/theme";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import NumberFormat from "../../components/global/NumberFormat";
 import {
   FiShoppingBag,
   FiDollarSign,
@@ -113,10 +114,10 @@ const OrderDetailsModal = ({ order, onClose }) => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-500">
-                      {item.quantity} x Rs. {item.price}
+                      {item.quantity} x Rs. <NumberFormat value={item.price} />
                     </p>
                     <p className="text-base font-bold text-gray-900 mt-1">
-                      Rs. {item.quantity * item.price}
+                      Rs. <NumberFormat value={item.quantity * item.price} />
                     </p>
                   </div>
                 </div>
@@ -134,7 +135,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
             Total Vendor Earning
           </span>
           <span className="text-xl font-bold text-gray-900">
-            Rs. {order.vendor_total_amount}
+            Rs. <NumberFormat value={order.vendor_total_amount} />
           </span>
         </div>
       </div>
@@ -245,7 +246,7 @@ const VendorDashboardPage = () => {
         <p className="text-gray-500 text-sm font-medium">{title}</p>
         <h3 className="text-2xl font-bold mt-1 text-gray-800">
           {suffix}
-          {value.toLocaleString()}
+          <NumberFormat value={value} />
         </h3>
       </div>
     </div>
@@ -368,7 +369,7 @@ const VendorDashboardPage = () => {
                         {order.customer_name}
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                        Rs.{order.vendor_total_amount}
+                        Rs.<NumberFormat value={order.vendor_total_amount} />
                       </td>
                       <td className="px-6 py-4">
                         <span
