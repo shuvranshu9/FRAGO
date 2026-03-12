@@ -366,7 +366,8 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       Size (ml)
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={variant.size_ml}
                       onChange={(e) =>
                         handleVariantChange(index, "size_ml", e.target.value)
@@ -380,7 +381,8 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       Price (NPR)
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={variant.price}
                       onChange={(e) =>
                         handleVariantChange(index, "price", e.target.value)
@@ -394,7 +396,8 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       Stock
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={variant.stock_quantity}
                       onChange={(e) =>
                         handleVariantChange(
