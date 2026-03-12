@@ -26,7 +26,7 @@ const MONTHS = [
 ];
 
 const selectClass =
-  "h-9 px-3 pr-8 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed appearance-none cursor-pointer";
+  "h-9 px-3 pr-8 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-[rgba(47,94,58,0.2)] focus:border-[#2f5e3a] transition-all disabled:opacity-40 disabled:cursor-not-allowed appearance-none cursor-pointer";
 
 const OrderFilters = ({ filters, onChange, onReset }) => {
   const currentYear = new Date().getFullYear();
@@ -67,7 +67,7 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
       <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1 shrink-0">
         <FiFilter size={13} /> Filters
         <span
-          className={`ml-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none transition-opacity duration-150 ${
+          className={`ml-1 bg-[#2f5e3a] text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none transition-opacity duration-150 ${
             activeCount > 0 ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -150,7 +150,7 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
             handleChange("day", v);
           }
         }}
-        className="h-9 w-20 shrink-0 px-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+        className="h-9 w-20 shrink-0 px-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-[rgba(47,94,58,0.2)] focus:border-[#2f5e3a] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
       />
 
       {/* Sort by amount — fixed width so text change never shifts row */}
@@ -159,7 +159,7 @@ const OrderFilters = ({ filters, onChange, onReset }) => {
         title="Sort by Amount"
         className={`flex items-center justify-center gap-1.5 h-9 w-40 shrink-0 rounded-xl border text-sm font-medium transition-all ${
           filters.sortAmount
-            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+            ? "border-[#2f5e3a] bg-[rgba(47,94,58,0.1)] text-[#2f5e3a]"
             : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
         }`}
       >

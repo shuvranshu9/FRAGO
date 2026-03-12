@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import OrderFilters from "../../components/vendor/OrderFilters";
 import Pagination from "@mui/material/Pagination";
+import { alpha } from "@mui/material/styles";
+import { theme } from "../../styles/theme";
 import {
   FiShoppingBag,
   FiDollarSign,
@@ -407,9 +409,24 @@ const VendorDashboardPage = () => {
                 count={totalPages}
                 page={page}
                 onChange={(event, value) => setPage(value)}
-                color="primary"
                 shape="rounded"
                 size="medium"
+                sx={{
+                  "& .MuiPaginationItem-root": {
+                    color: theme.colors.text.primary,
+                    fontWeight: 600,
+                  },
+                  "& .MuiPaginationItem-root.Mui-selected": {
+                    backgroundColor: theme.colors.primary,
+                    color: theme.colors.text.inverse,
+                    "&:hover": {
+                      backgroundColor: theme.colors.secondary,
+                    },
+                  },
+                  "& .MuiPaginationItem-root:hover": {
+                    backgroundColor: alpha(theme.colors.primary, 0.08),
+                  },
+                }}
               />
             </div>
           )}
