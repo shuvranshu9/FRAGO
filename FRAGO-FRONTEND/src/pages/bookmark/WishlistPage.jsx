@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Heart, ShoppingBag, Trash2, ArrowRight, Package } from "lucide-react";
 import { useWishlist } from "../../context/WishlistContext";
 import { generateSlug } from "../../utils/slug";
+import NumberFormat from "../../components/global/NumberFormat";
 
 const WishlistPage = () => {
   const { wishlist, removeFromWishlist, loading } = useWishlist();
@@ -130,7 +131,7 @@ const WishlistPage = () => {
                         Starts from
                       </span>
                       <span className="text-lg font-bold text-gray-900">
-                        Rs. {item.start_price?.toLocaleString() || "N/A"}
+                        Rs. {item.start_price ? <NumberFormat value={item.start_price} /> : "N/A"}
                       </span>
                     </div>
 

@@ -4,7 +4,7 @@ import OrderFilters from "../../components/vendor/OrderFilters";
 import Pagination from "@mui/material/Pagination";
 import { alpha } from "@mui/material/styles";
 import { theme } from "../../styles/theme";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Tooltip, ResponsiveContainer } from "recharts";
 import NumberFormat from "../../components/global/NumberFormat";
 import {
   FiShoppingBag,
@@ -487,7 +487,11 @@ const VendorDashboardPage = () => {
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
-                      data={topProducts.map((p) => ({ name: p.name, value: Number(p.total_sold) }))}
+                      data={topProducts.map((p, i) => ({
+                        name: p.name,
+                        value: Number(p.total_sold),
+                        fill: ["#2f5e3a", "#4ade80", "#f59e0b", "#1a3824", "#10b981", "#d97706"][i % 6],
+                      }))}
                       cx="50%"
                       cy="50%"
                       innerRadius={50}
@@ -495,21 +499,7 @@ const VendorDashboardPage = () => {
                       paddingAngle={3}
                       dataKey="value"
                       stroke="none"
-                    >
-                      {topProducts.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={[
-                            "#2f5e3a",
-                            "#4ade80",
-                            "#f59e0b",
-                            "#1a3824",
-                            "#10b981",
-                            "#d97706",
-                          ][i % 6]}
-                        />
-                      ))}
-                    </Pie>
+                    />
                     <Tooltip
                       formatter={(value, name) => [`${value} units`, name]}
                       contentStyle={{ borderRadius: 12, fontSize: 13 }}
