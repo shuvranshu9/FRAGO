@@ -14,8 +14,8 @@ export const PLACES = ["Office", "Party", "Gym", "Travel"];
 
 // Mapping place -> scent_type
 export const PLACE_SCENT_MAP = {
-  Office: ["Fresh", "Citrus", "Aromatic", "Fougere", "Floral"],
-  Party: ["Oriental", "Gourmand", "Leather", "Chypre","Luxury"],
+  Office: ["Fresh", "Citrus", "Aromatic", "Fougere", "Floral","Luxury"],
+  Party: ["Oriental", "Gourmand", "Leather", "Chypre","Luxury","Spice"],
   Gym: ["Fresh", "Citrus", "Aromatic"],
   Travel: ["Woody", "Fresh", "Aromatic"],
 };

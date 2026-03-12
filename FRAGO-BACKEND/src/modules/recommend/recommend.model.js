@@ -88,20 +88,19 @@ export const getRecommendedPerfumes = async ({
   const categoryId = parseCategoryId(category_id);
   const scentTypes = getScentTypesForPlace(place);
 
-  // Try strict match first; if empty, progressively relax filters to return best available suggestions.
   const attempts = [
     {
       includeGender: Boolean(normalizedGender),
       includeCategory: Boolean(categoryId),
       includeScentTypes: true,
     },
-    // If a category was selected but yields 0 rows, drop category first (best available suggestions)
+
     {
       includeGender: Boolean(normalizedGender),
       includeCategory: false,
       includeScentTypes: true,
     },
-    // If still empty, drop place scent mapping
+  
     {
       includeGender: Boolean(normalizedGender),
       includeCategory: Boolean(categoryId),
@@ -112,7 +111,6 @@ export const getRecommendedPerfumes = async ({
       includeCategory: false,
       includeScentTypes: false,
     },
-    // Last resort: mood-only
     {
       includeGender: false,
       includeCategory: false,
@@ -121,7 +119,6 @@ export const getRecommendedPerfumes = async ({
   ];
 
   for (const attempt of attempts) {
-    // Skip attempts that are equivalent to earlier ones when no categoryId exists
     if (!categoryId && attempt.includeCategory) continue;
 
     const rows = await runRecommendationQuery({

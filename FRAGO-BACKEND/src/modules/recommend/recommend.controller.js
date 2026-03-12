@@ -8,7 +8,7 @@ export const getRecommendationOptions = async (req, res) => {
     res.json({
       moods: MOODS,
       genders: GENDERS,
-      categories: categories, // real categories from DB
+      categories: categories, 
       places: PLACES,
     });
   } catch (err) {
@@ -30,7 +30,7 @@ export const recommendPerfumeController = async (req, res) => {
       mood: mood.toLowerCase(),
       gender: gender ? gender.toLowerCase() : null,
       category_id: category_id || null,
-      place, // place is used for constant mapping, keep case if needed or normalize
+      place, 
     });
 
     res.json({
