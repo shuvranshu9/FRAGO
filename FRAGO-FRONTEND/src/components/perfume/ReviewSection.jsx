@@ -137,7 +137,7 @@ const ReviewSection = ({ perfumeId }) => {
 
   return (
     <div className="mt-16 mb-10">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-3xl font-serif font-bold text-gray-900">
             Customer Reviews

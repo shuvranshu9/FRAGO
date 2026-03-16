@@ -317,7 +317,7 @@ const ProductDetailsPage = () => {
             <div className="space-y-8">
               {/* Variants / Pricing Section */}
               {product.variants && product.variants.length > 0 && (
-                <div className="pb-8 border-b border-gray-100">
+                <div className="pb-2 border-b border-gray-100">
                   <h3 className="text-sm font-bold uppercase tracking-widest text-gray-900 mb-6">
                     Available Sizes
                   </h3>
@@ -591,8 +591,8 @@ const ProductDetailsPage = () => {
               </div>
 
               {/* Vendor Information Section */}
-              <div className="pt-12 mt-12 border-t border-gray-100">
-                <div className="flex items-center gap-3 mb-8">
+              <div className="pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-900 border border-green-100">
                     <Store size={20} />
                   </div>
