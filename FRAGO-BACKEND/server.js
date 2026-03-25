@@ -13,6 +13,8 @@ import recommendRoutes from "./src/modules/recommend/recommend.routes.js";
 import orderRoutes from "./src/modules/order/order.routes.js";
 import paymentRoutes from "./src/modules/payment/payment.routes.js";
 import reviewRoutes from "./src/modules/review/review.routes.js";
+import chatRoutes from "./src/modules/chat/chat.routes.js";
+import messageRoutes from "./src/modules/messgae/message.routes.js";
 
 dotenv.config();
 
@@ -47,6 +49,8 @@ app.use("/api/recommend", recommendRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/review", reviewRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/message", messageRoutes);
 
 app.get("/", (req, res) => {
   res.send("FRAGO Backend Running");

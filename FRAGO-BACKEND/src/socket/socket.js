@@ -32,7 +32,7 @@ export const initSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    const userID = socket.user.id;
+    const userID = socket.user.userID;
     const role = socket.user.role;
 
     console.log(
