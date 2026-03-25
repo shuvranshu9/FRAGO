@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import pool from "./src/config/db.js";
+import http from "http";
+import { initSocket } from "./src/socket/socket.js";
 import authRoutes from "./src/modules/auth/auth.routes.js";
 import perfumeRoutes from "./src/modules/perfume/perfume.routes.js";
 import categoryRoutes from "./src/modules/category/category.routes.js";
@@ -15,6 +17,7 @@ import reviewRoutes from "./src/modules/review/review.routes.js";
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 
 // Middleware
 app.use(express.json());
@@ -65,8 +68,11 @@ app.use((err, req, res, next) => {
   }
 })();
 
+// Init socket.io
+initSocket(server);
+
 // Start server
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 8000;
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
