@@ -27,6 +27,7 @@ import CheckoutPage from "./pages/cart/CheckoutPage.jsx";
 import CartPage from "./pages/cart/CartPage.jsx";
 import OrderSuccessPage from "./pages/order/OrderSuccessPage.jsx";
 import OrdersPage from "./pages/order/OrdersPage.jsx";
+import ChatPage from "./pages/chat/chatPage.jsx";
 
 export default function App() {
   return (
@@ -49,7 +50,7 @@ export default function App() {
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/account/orders" element={<OrdersPage />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
-                <Route path="/chat" element={<div>Chat Page</div>} />
+                <Route path="/chat" element={<ChatPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route
