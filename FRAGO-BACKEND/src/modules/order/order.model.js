@@ -67,20 +67,34 @@ export const getOrdersByUserId = async (userId) => {
   return rows;
 };
 
-export const getOrdersByUserIdPaginated = async (userId, { limit, offset }) => {
+export const getOrdersByUserIdPaginated = async (
+  userId,
+  { limit, offset, status = null },
+) => {
+  const whereConditions = ["user_id = ?"];
+  const whereParams = [userId];
+
+  if (status) {
+    whereConditions.push("order_status = ?");
+    whereParams.push(status);
+  }
+
+  const whereClause = whereConditions.join(" AND ");
+
   const [[{ total_count }]] = await pool.query(
-    "SELECT COUNT(*) as total_count FROM order_table WHERE user_id = ?",
-    [userId],
+    `SELECT COUNT(*) as total_count FROM order_table WHERE ${whereClause}`,
+    whereParams,
   );
 
+  // Always compute overall pending count (for navbar badges)
   const [[{ pending_count }]] = await pool.query(
     "SELECT COUNT(*) as pending_count FROM order_table WHERE user_id = ? AND order_status = 'pending'",
     [userId],
   );
 
   const [rows] = await pool.query(
-    "SELECT * FROM order_table WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
-    [userId, limit, offset],
+    `SELECT * FROM order_table WHERE ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    [...whereParams, limit, offset],
   );
 
   return { data: rows, total_count, pending_count };

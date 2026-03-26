@@ -78,13 +78,28 @@ export const getMyOrdersController = async (req, res) => {
   try {
     const userId = req.user.userID;
 
+    const status = req.query.status ? String(req.query.status).toLowerCase() : null;
+    if (status) {
+      const validStatuses = [
+        "pending",
+        "paid",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+    }
+
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const rawLimit = parseInt(req.query.limit, 10);
     const limit = Math.min(50, Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 10));
     const offset = (page - 1) * limit;
 
     const { data: orders, total_count, pending_count } =
-      await OrderModel.getOrdersByUserIdPaginated(userId, { limit, offset });
+      await OrderModel.getOrdersByUserIdPaginated(userId, { limit, offset, status });
 
     res.json({
       data: orders,

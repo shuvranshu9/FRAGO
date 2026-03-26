@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import CustomPagination from "../../components/global/customPagination";
 import {
@@ -10,6 +10,7 @@ import {
   Edit,
   CreditCard,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useOrders } from "../../context/OrdersContext";
@@ -25,41 +26,47 @@ const OrdersPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [statusFilter, setStatusFilter] = useState("all");
   const limit = 10;
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [payingOrderId, setPayingOrderId] = useState(null);
 
+  const fetchOrders = useCallback(async () => {
+    if (!token) return;
+
+    setLoading(true);
+    try {
+      const params = { page, limit };
+      if (statusFilter !== "all") {
+        params.status = statusFilter;
+      }
+
+      const response = await api.get("/order", {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      });
+
+      setOrders(response.data?.data || []);
+      const newTotalPages = response.data?.totalPages || 1;
+      setTotalPages(newTotalPages);
+      setTotalOrders(response.data?.totalOrders || 0);
+
+      if (page > newTotalPages) {
+        setPage(newTotalPages);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      toast.error("Failed to load your orders");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, page, limit, statusFilter]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get("/order", {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { page, limit },
-        });
-
-        setOrders(response.data?.data || []);
-        const newTotalPages = response.data?.totalPages || 1;
-        setTotalPages(newTotalPages);
-        setTotalOrders(response.data?.totalOrders || 0);
-
-        if (page > newTotalPages) {
-          setPage(newTotalPages);
-        }
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        toast.error("Failed to load your orders");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (token) {
-      fetchOrders();
-    }
-  }, [token, page]);
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleCancelOrder = async () => {
     if (!orderToCancel) return;
@@ -82,6 +89,8 @@ const OrdersPage = () => {
         ),
       );
       refreshPendingOrdersCount();
+      // Refetch so pagination + filters stay accurate
+      fetchOrders();
     } catch (error) {
       console.error("Error cancelling order:", error);
       toast.error(error.response?.data?.message || "Failed to cancel order");
@@ -154,11 +163,38 @@ const OrdersPage = () => {
             Manage and track your recent fragrance purchases.
           </p>
         </div>
-        <div className="bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm self-start">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            Total Orders
-          </p>
-          <p className="text-xl font-bold text-green-900">{totalOrders}</p>
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-end self-start">
+          <div className="bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+              Orders
+            </p>
+            <p className="text-xl font-bold text-green-900">{totalOrders}</p>
+          </div>
+
+          <div className="bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+              Status
+            </p>
+            <div className="relative w-full sm:w-48">
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl pl-3 pr-10 py-2 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-green-900/15 focus:border-green-300"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <ChevronDown
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
