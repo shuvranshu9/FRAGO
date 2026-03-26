@@ -67,6 +67,25 @@ export const getOrdersByUserId = async (userId) => {
   return rows;
 };
 
+export const getOrdersByUserIdPaginated = async (userId, { limit, offset }) => {
+  const [[{ total_count }]] = await pool.query(
+    "SELECT COUNT(*) as total_count FROM order_table WHERE user_id = ?",
+    [userId],
+  );
+
+  const [[{ pending_count }]] = await pool.query(
+    "SELECT COUNT(*) as pending_count FROM order_table WHERE user_id = ? AND order_status = 'pending'",
+    [userId],
+  );
+
+  const [rows] = await pool.query(
+    "SELECT * FROM order_table WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+    [userId, limit, offset],
+  );
+
+  return { data: rows, total_count, pending_count };
+};
+
 // Get full order details by ID
 export const getOrderById = async (orderId) => {
   // Get order info

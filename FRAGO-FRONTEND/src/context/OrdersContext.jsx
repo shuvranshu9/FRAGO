@@ -23,9 +23,17 @@ export const OrdersProvider = ({ children }) => {
     try {
       const response = await api.get("/order", {
         headers: { Authorization: `Bearer ${token}` },
+        params: { page: 1, limit: 1 },
       });
 
-      const pending = (response.data || []).filter(
+      const pendingCount = response.data?.pendingCount;
+      if (Number.isFinite(pendingCount)) {
+        setPendingOrdersCount(pendingCount);
+        return;
+      }
+
+      const orders = response.data?.data || response.data || [];
+      const pending = (orders || []).filter(
         (order) => (order.order_status || "").toLowerCase() === "pending",
       );
       setPendingOrdersCount(pending.length);

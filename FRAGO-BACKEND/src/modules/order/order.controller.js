@@ -77,8 +77,22 @@ export const checkoutController = async (req, res) => {
 export const getMyOrdersController = async (req, res) => {
   try {
     const userId = req.user.userID;
-    const orders = await OrderModel.getOrdersByUserId(userId);
-    res.json(orders);
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const rawLimit = parseInt(req.query.limit, 10);
+    const limit = Math.min(50, Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 10));
+    const offset = (page - 1) * limit;
+
+    const { data: orders, total_count, pending_count } =
+      await OrderModel.getOrdersByUserIdPaginated(userId, { limit, offset });
+
+    res.json({
+      data: orders,
+      currentPage: page,
+      totalPages: Math.max(1, Math.ceil(total_count / limit)),
+      totalOrders: total_count,
+      pendingCount: pending_count,
+    });
   } catch (err) {
     console.error("Error fetching orders:", err);
     res.status(500).json({ message: "Failed to fetch orders" });

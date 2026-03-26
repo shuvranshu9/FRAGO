@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import CustomPagination from "../../components/global/customPagination";
 import {
   Package,
   Calendar,
@@ -21,6 +22,10 @@ const OrdersPage = () => {
   const { refreshPendingOrdersCount } = useOrders();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const limit = 10;
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [payingOrderId, setPayingOrderId] = useState(null);
@@ -28,11 +33,21 @@ const OrdersPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetchOrders = async () => {
+      setLoading(true);
       try {
         const response = await api.get("/order", {
           headers: { Authorization: `Bearer ${token}` },
+          params: { page, limit },
         });
-        setOrders(response.data);
+
+        setOrders(response.data?.data || []);
+        const newTotalPages = response.data?.totalPages || 1;
+        setTotalPages(newTotalPages);
+        setTotalOrders(response.data?.totalOrders || 0);
+
+        if (page > newTotalPages) {
+          setPage(newTotalPages);
+        }
       } catch (error) {
         console.error("Error fetching orders:", error);
         toast.error("Failed to load your orders");
@@ -44,7 +59,7 @@ const OrdersPage = () => {
     if (token) {
       fetchOrders();
     }
-  }, [token]);
+  }, [token, page]);
 
   const handleCancelOrder = async () => {
     if (!orderToCancel) return;
@@ -143,11 +158,11 @@ const OrdersPage = () => {
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
             Total Orders
           </p>
-          <p className="text-xl font-bold text-green-900">{orders.length}</p>
+          <p className="text-xl font-bold text-green-900">{totalOrders}</p>
         </div>
       </div>
 
-      {orders.length === 0 ? (
+      {totalOrders === 0 ? (
         <div className="bg-white rounded-3xl p-16 text-center shadow-sm border border-gray-100 flex flex-col items-center">
           <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-8 ring-8 ring-gray-50/50">
             <Package size={42} />
@@ -367,6 +382,14 @@ const OrdersPage = () => {
             ))}
           </div>
         </div>
+      )}
+
+      {totalPages > 1 && !loading && (
+        <CustomPagination
+          page={page}
+          totalPages={totalPages}
+          onChange={(value) => setPage(value)}
+        />
       )}
 
       <ConfirmationModal
