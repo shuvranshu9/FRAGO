@@ -245,7 +245,7 @@ export default function ChatPage() {
         {/* Sidebar Header */}
         <div className="p-4 border-b border-gray-50 flex flex-col gap-4 ">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-green-900 to-green-600 bg-clip-text text-transparent">
               Messages
             </h1>
             <div className="p-2 bg-gray-50 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">
@@ -257,7 +257,7 @@ export default function ChatPage() {
             <input
               type="text"
               placeholder="Search conversations..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-green-900/20 outline-none transition-all"
             />
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto scrollbar-hide">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-40 space-y-2 text-gray-400">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-900"></div>
               <p className="text-xs">Loading conversations...</p>
             </div>
           ) : chats.length === 0 ? (
@@ -285,14 +285,14 @@ export default function ChatPage() {
                   p-4 flex items-center gap-4 cursor-pointer transition-all duration-200 border-l-4
                   ${
                     selectedChat?.chat_id === chat.chat_id
-                      ? "bg-purple-50/50 border-purple-600"
+                      ? "bg-green-50/60 border-green-900"
                       : "bg-white border-transparent hover:bg-gray-50"
                   }
                 `}
               >
                 <div className="relative">
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${chat.vendor_id === user?.userID ? "bg-blue-100 text-blue-500" : "bg-pink-100 text-pink-500"}`}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${chat.vendor_id === user?.userID ? "bg-green-100 text-green-700" : "bg-green-50 text-green-900"}`}
                   >
                     <User className="w-6 h-6" />
                   </div>
@@ -301,7 +301,7 @@ export default function ChatPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-1">
                     <h3
-                      className={`font-semibold truncate ${selectedChat?.chat_id === chat.chat_id ? "text-purple-900" : "text-gray-800"}`}
+                      className={`font-semibold truncate ${selectedChat?.chat_id === chat.chat_id ? "text-green-900" : "text-gray-800"}`}
                     >
                       {getChatPartnerName(chat)}
                     </h3>
@@ -321,7 +321,7 @@ export default function ChatPage() {
                       {chat.last_message || "No messages yet"}
                     </p>
                     {chat.unread_count > 0 && (
-                      <span className="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold">
+                      <span className="bg-green-900 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold">
                         {chat.unread_count}
                       </span>
                     )}
@@ -353,7 +353,7 @@ export default function ChatPage() {
                 </button>
                 <div className="relative">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${selectedChat.vendor_id === user?.userID ? "bg-blue-100 text-blue-500" : "bg-pink-100 text-pink-500"}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${selectedChat.vendor_id === user?.userID ? "bg-green-100 text-green-700" : "bg-green-50 text-green-900"}`}
                   >
                     <User className="w-5 h-5" />
                   </div>
@@ -369,13 +369,13 @@ export default function ChatPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-all">
+                <button className="p-2 text-gray-400 hover:text-green-900 hover:bg-green-50 rounded-full transition-all">
                   <Phone className="w-4 h-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-all">
+                <button className="p-2 text-gray-400 hover:text-green-900 hover:bg-green-50 rounded-full transition-all">
                   <Video className="w-4 h-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-all">
+                <button className="p-2 text-gray-400 hover:text-green-900 hover:bg-green-50 rounded-full transition-all">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
@@ -388,7 +388,7 @@ export default function ChatPage() {
             >
               {messageLoading ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-900"></div>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-400">
@@ -413,14 +413,14 @@ export default function ChatPage() {
                         max-w-[80%] lg:max-w-[70%] p-3 rounded-2xl shadow-sm text-sm relative
                         ${
                           msg.sender_id === user?.userID
-                            ? "bg-purple-600 text-white rounded-tr-none"
+                            ? "bg-green-900 text-white rounded-tr-none"
                             : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
                         }
                       `}
                       >
                         <p className="leading-relaxed">{msg.message_text}</p>
                         <div
-                          className={`flex items-center gap-1 mt-1 justify-end ${msg.sender_id === user?.userID ? "text-purple-200" : "text-gray-400"}`}
+                          className={`flex items-center gap-1 mt-1 justify-end ${msg.sender_id === user?.userID ? "text-green-100" : "text-gray-400"}`}
                         >
                           <span className="text-[9px] uppercase">
                             {new Date(msg.sent_at).toLocaleTimeString([], {
@@ -443,11 +443,11 @@ export default function ChatPage() {
             <div className="p-4 bg-white border-t border-gray-100">
               <form
                 onSubmit={handleSendMessage}
-                className="flex items-center gap-3 bg-gray-50 p-2 pl-4 rounded-2xl border border-transparent focus-within:border-purple-200 focus-within:bg-white transition-all shadow-sm"
+                className="flex items-center gap-3 bg-gray-50 p-2 pl-4 rounded-2xl border border-transparent focus-within:border-green-200 focus-within:bg-white transition-all shadow-sm"
               >
                 <button
                   type="button"
-                  className="text-gray-400 hover:text-purple-600 transition-colors"
+                  className="text-gray-400 hover:text-green-900 transition-colors"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
@@ -460,7 +460,7 @@ export default function ChatPage() {
                 />
                 <button
                   type="button"
-                  className="text-gray-400 hover:text-purple-600 transition-colors hidden sm:block"
+                  className="text-gray-400 hover:text-green-900 transition-colors hidden sm:block"
                 >
                   <Smile className="w-5 h-5" />
                 </button>
@@ -471,7 +471,7 @@ export default function ChatPage() {
                     p-2.5 rounded-xl transition-all shadow-md
                     ${
                       inputValue.trim()
-                        ? "bg-purple-600 text-white hover:bg-purple-700 hover:scale-105 active:scale-95"
+                        ? "bg-green-900 text-white hover:bg-green-800 hover:scale-105 active:scale-95"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     }
                   `}
@@ -484,7 +484,7 @@ export default function ChatPage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg mb-4">
-              <Send className="w-8 h-8 text-purple-200" />
+              <Send className="w-8 h-8 text-green-200" />
             </div>
             <h2 className="text-lg font-bold text-gray-700">Your Messages</h2>
             <p className="text-sm">Select a conversation to start chatting.</p>
