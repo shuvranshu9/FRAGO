@@ -5,7 +5,7 @@ export const findOrCreateChat = async (buyerId, vendorId) => {
   try {
     await connection.beginTransaction();
 
-    // Check if chat exists with FOR UPDATE to lock potential existing rows (though new inserts aren't blocked)
+    // Check if chat exists with FOR UPDATE to lock potential existing rows
     const [existing] = await connection.execute(
       "SELECT * FROM chat WHERE (buyer_id = ? AND vendor_id = ?) OR (buyer_id = ? AND vendor_id = ?) FOR UPDATE",
       [buyerId, vendorId, vendorId, buyerId],
@@ -30,8 +30,7 @@ export const findOrCreateChat = async (buyerId, vendorId) => {
     };
   } catch (error) {
     await connection.rollback();
-    // If it's a duplicate entry error (in case a unique index IS added later), handle it
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error.code === "ER_DUP_ENTRY") {
       const [existing] = await connection.execute(
         "SELECT * FROM chat WHERE (buyer_id = ? AND vendor_id = ?) OR (buyer_id = ? AND vendor_id = ?)",
         [buyerId, vendorId, vendorId, buyerId],
@@ -45,7 +44,6 @@ export const findOrCreateChat = async (buyerId, vendorId) => {
 };
 
 export const getChatsByUserId = async (userId) => {
-  // Get chats where user is buyer or vendor, and join with user info
   const sql = `
     SELECT 
       c.*, 

@@ -43,7 +43,6 @@ const OrderSuccessPage = () => {
     window.scrollTo(0, 0);
     const fetchOrderDetails = async () => {
       try {
-        // If pidx is present, it means we're coming from Khalti
         const pidx = searchParams.get("pidx");
         if (pidx && !hasVerified.current) {
           hasVerified.current = true;
