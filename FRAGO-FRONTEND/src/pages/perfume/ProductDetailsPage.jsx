@@ -37,7 +37,7 @@ const ProductDetailsPage = () => {
   const id = extractIdFromSlug(slug);
   const location = useLocation();
   const from = location.state?.from || "/perfumes";
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
@@ -54,6 +54,13 @@ const ProductDetailsPage = () => {
       navigate("/login", { state: { from: location.pathname } });
       return;
     }
+
+    // Prevent self-chat
+    if (user && Number(user.userID) === Number(product.vendor_id)) {
+      toast.info("This is your own product. You cannot chat with yourself.");
+      return;
+    }
+
     navigate("/chat", {
       state: {
         vendorId: product.vendor_id,

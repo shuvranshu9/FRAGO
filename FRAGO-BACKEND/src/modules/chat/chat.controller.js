@@ -9,7 +9,7 @@ export const createChat = async (req, res, next) => {
       return res.status(400).json({ message: "Vendor ID is required" });
     }
 
-    if (buyerId === vendorId) {
+    if (Number(buyerId) === Number(vendorId)) {
       return res.status(400).json({ message: "You cannot chat with yourself" });
     }
 

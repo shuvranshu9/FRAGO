@@ -59,6 +59,13 @@ export default function ChatPage() {
 
         // If coming from product page, find or create chat
         if (vendorId) {
+          // Prevent self-chat
+          if (user && Number(user.userID) === Number(vendorId)) {
+            toast.info("You cannot chat with yourself.");
+            setLoading(false);
+            return;
+          }
+
           const existingChat = response.data.find(
             (c) => c.vendor_id === vendorId || c.buyer_id === vendorId,
           );
@@ -87,7 +94,7 @@ export default function ChatPage() {
       fetchingChatsRef.current = true;
       fetchChats();
     }
-  }, [isAuthenticated, vendorId, vendorName, user?.full_name]);
+  }, [isAuthenticated, vendorId, vendorName, user]);
 
   useEffect(() => {
     if (socket) {
