@@ -3,6 +3,7 @@ import { ToastContainer } from "react-toastify";
 import { WishlistProvider } from "./context/WishlistContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { SocketProvider } from "./context/SocketContext.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
@@ -32,91 +33,93 @@ import ChatPage from "./pages/chat/chatPage.jsx";
 export default function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <ScrollToTop />
-          <Routes>
-            {/* Public routes within MainLayout */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/about-us" element={<AboutUsPage />} />
-              <Route path="/contact-us" element={<ContactUsPage />} />
-              <Route path="/brands" element={<BrandsPage />} />
-              <Route path="/perfumes" element={<PerfumesPage />} />
-              <Route path="/product/:slug" element={<ProductDetailsPage />} />
+      <SocketProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <ScrollToTop />
+            <Routes>
+              {/* ... routes ... */}
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about-us" element={<AboutUsPage />} />
+                <Route path="/contact-us" element={<ContactUsPage />} />
+                <Route path="/brands" element={<BrandsPage />} />
+                <Route path="/perfumes" element={<PerfumesPage />} />
+                <Route path="/product/:slug" element={<ProductDetailsPage />} />
 
-              {/* Protected routes within MainLayout */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/account" element={<AccountPage />} />
-                <Route path="/account/orders" element={<OrdersPage />} />
-                <Route path="/wishlist" element={<WishlistPage />} />
-                <Route path="/chat" element={<ChatPage />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route
-                  path="/order-success/:orderId"
-                  element={<OrderSuccessPage />}
-                />
+                {/* Protected routes within MainLayout */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/account/orders" element={<OrdersPage />} />
+                  <Route path="/wishlist" element={<WishlistPage />} />
+                  <Route path="/chat" element={<ChatPage />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route
+                    path="/order-success/:orderId"
+                    element={<OrderSuccessPage />}
+                  />
+                </Route>
+
+                {/* Vendor Specific Routes */}
+                <Route element={<ProtectedRoute allowedRoles={["vendor"]} />}>
+                  <Route
+                    path="/vendor/dashboard"
+                    element={<VendorDashboardPage />}
+                  />
+                  <Route
+                    path="/vendor/products"
+                    element={<VendorProductsPage />}
+                  />
+                  <Route
+                    path="/vendor/products/add"
+                    element={<VendorProductFormPage />}
+                  />
+                  <Route
+                    path="/vendor/products/edit/:slug"
+                    element={<VendorProductFormPage />}
+                  />
+                  <Route
+                    path="/vendor/categories"
+                    element={<VendorCategoriesPage />}
+                  />
+                </Route>
               </Route>
 
-              {/* Vendor Specific Routes */}
-              <Route element={<ProtectedRoute allowedRoles={["vendor"]} />}>
-                <Route
-                  path="/vendor/dashboard"
-                  element={<VendorDashboardPage />}
-                />
-                <Route
-                  path="/vendor/products"
-                  element={<VendorProductsPage />}
-                />
-                <Route
-                  path="/vendor/products/add"
-                  element={<VendorProductFormPage />}
-                />
-                <Route
-                  path="/vendor/products/edit/:slug"
-                  element={<VendorProductFormPage />}
-                />
-                <Route
-                  path="/vendor/categories"
-                  element={<VendorCategoriesPage />}
-                />
-              </Route>
-            </Route>
+              {/* Auth routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify-otp" element={<VerifyOTPPage />} />
 
-            {/* Auth routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/verify-otp" element={<VerifyOTPPage />} />
+              {/* 404 */}
+              <Route
+                path="*"
+                element={
+                  <div className="min-h-screen flex items-center justify-center text-gray-600">
+                    Page not found
+                  </div>
+                }
+              />
+            </Routes>
+          </WishlistProvider>
+        </CartProvider>
 
-            {/* 404 */}
-            <Route
-              path="*"
-              element={
-                <div className="min-h-screen flex items-center justify-center text-gray-600">
-                  Page not found
-                </div>
-              }
-            />
-          </Routes>
-        </WishlistProvider>
-      </CartProvider>
-
-      {/* Toast notifications */}
-      <ToastContainer
-        position="top-right"
-        hideProgressBar={false}
-        autoClose={2000}
-        limit={1}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        pauseOnHover
-        theme="light"
-      />
+        {/* Toast notifications */}
+        <ToastContainer
+          position="top-right"
+          hideProgressBar={false}
+          autoClose={2000}
+          limit={1}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          pauseOnHover
+          theme="light"
+        />
+      </SocketProvider>
     </AuthProvider>
   );
 }

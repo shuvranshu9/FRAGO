@@ -14,8 +14,8 @@ import {
   User,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
 import api from "../../utils/api";
-import { initSocket } from "../../socket/socketLogic";
 import { toast } from "react-toastify";
 
 // Mock data removed
@@ -23,7 +23,8 @@ import { toast } from "react-toastify";
 export default function ChatPage() {
   const location = useLocation();
   const { vendorId, vendorName } = location.state || {};
-  const { token, user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const { socket, decrementUnreadCount } = useSocket();
   
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -34,6 +35,11 @@ export default function ChatPage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const messagesContainerRef = useRef(null);
   const fetchingChatsRef = useRef(false);
+  const selectedChatRef = useRef(null);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
 
   const scrollToBottom = (behavior = "smooth") => {
     if (messagesContainerRef.current) {
@@ -59,13 +65,12 @@ export default function ChatPage() {
           } else {
             const newChatResponse = await api.post("/chat", { vendorId });
             const newChat = newChatResponse.data;
-            // Add names for UI consistency (backend might not return them in createChat)
-            newChat.buyer_name = user.full_name;
+            newChat.buyer_name = user?.full_name;
             newChat.vendor_name = vendorName;
             setChats(prev => [newChat, ...prev]);
             setSelectedChat(newChat);
           }
-        } else if (response.data.length > 0) {
+        } else if (response.data.length > 0 && !selectedChatRef.current) {
           setSelectedChat(response.data[0]);
         }
       } catch (error) {
@@ -76,26 +81,32 @@ export default function ChatPage() {
       }
     };
 
-    if (token && !fetchingChatsRef.current) {
+    if (isAuthenticated && !fetchingChatsRef.current) {
       fetchingChatsRef.current = true;
       fetchChats();
-      const socket = initSocket(token);
-      
-      socket.on("newMessage", (message) => {
+    }
+  }, [isAuthenticated, vendorId, vendorName, user?.full_name]);
+
+  useEffect(() => {
+    if (socket) {
+      const handleNewMessage = (message) => {
         // Update messages if it's the current chat
-        setSelectedChat(currentSelected => {
-          if (currentSelected?.chat_id === message.chat_id) {
-            setMessages(prev => [...prev, message]);
+        if (selectedChatRef.current?.chat_id === message.chat_id) {
+            setMessages(prev => {
+              if (prev.find(m => m.message_id === message.message_id)) return prev;
+              return [...prev, message];
+            });
             // Mark as read immediately if it's the active chat
             api.put(`/message/mark-read/${message.chat_id}`).catch(err => console.error(err));
-          }
-          return currentSelected;
-        });
+        }
 
         // Update chat list last message and unread count
         setChats(prev => prev.map(c => {
           if (c.chat_id === message.chat_id) {
-            const isUnread = selectedChat?.chat_id !== message.chat_id && message.sender_id !== user?.userID;
+            const isActive = selectedChatRef.current?.chat_id === message.chat_id;
+            const isFromOther = message.sender_id !== user?.userID;
+            const isUnread = !isActive && isFromOther;
+            
             return { 
               ...c, 
               last_message: message.message_text, 
@@ -105,13 +116,15 @@ export default function ChatPage() {
           }
           return c;
         }).sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time)));
-      });
+      };
 
+      socket.on("newMessage", handleNewMessage);
+      
       return () => {
-        socket.off("newMessage");
+        socket.off("newMessage", handleNewMessage);
       };
     }
-  }, [token, vendorId, vendorName, user?.full_name, user?.userID, selectedChat?.chat_id]);
+  }, [socket, user?.userID]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -124,7 +137,7 @@ export default function ChatPage() {
         // Mark as read and update navbar
         if (selectedChat.unread_count > 0) {
           await api.put(`/message/mark-read/${selectedChat.chat_id}`);
-          window.dispatchEvent(new CustomEvent("messagesRead", { detail: { count: selectedChat.unread_count } }));
+          decrementUnreadCount(selectedChat.unread_count);
           
           setChats(prev => prev.map(c => 
             c.chat_id === selectedChat.chat_id ? { ...c, unread_count: 0 } : c
@@ -139,7 +152,7 @@ export default function ChatPage() {
     };
 
     fetchMessages();
-  }, [selectedChat?.chat_id, selectedChat]); // Include selectedChat to satisfy lint, but logic uses chat_id
+  }, [selectedChat?.chat_id, selectedChat, decrementUnreadCount]); // Include selectedChat to satisfy lint, but logic uses chat_id
 
   useEffect(() => {
     scrollToBottom();
@@ -159,7 +172,10 @@ export default function ChatPage() {
       });
       
       const newMessage = response.data;
-      setMessages(prev => [...prev, newMessage]);
+      setMessages(prev => {
+        if (prev.find(m => m.message_id === newMessage.message_id)) return prev;
+        return [...prev, newMessage];
+      });
       
       // Update chat list last message
       setChats(prev => prev.map(c => {

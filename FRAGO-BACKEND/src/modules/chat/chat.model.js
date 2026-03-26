@@ -66,8 +66,16 @@ export const getChatsByUserId = async (userId) => {
 };
 
 export const getChatById = async (chatId) => {
-  const [rows] = await pool.execute("SELECT * FROM chat WHERE chat_id = ?", [
-    chatId,
-  ]);
+  const sql = `
+    SELECT 
+      c.*, 
+      u1.full_name as buyer_name, 
+      u2.full_name as vendor_name
+    FROM chat c
+    LEFT JOIN user u1 ON c.buyer_id = u1.user_id
+    LEFT JOIN user u2 ON c.vendor_id = u2.user_id
+    WHERE c.chat_id = ?
+  `;
+  const [rows] = await pool.execute(sql, [chatId]);
   return rows[0];
 };

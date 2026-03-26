@@ -26,10 +26,28 @@ export const sendMessage = async (req, res, next) => {
 
     // Identify receiver
     const receiver_id = chat.buyer_id === sender_id ? chat.vendor_id : chat.buyer_id;
+    const sender_name = chat.buyer_id === sender_id ? chat.buyer_name : chat.vendor_name;
+    const receiver_name = chat.buyer_id === sender_id ? chat.vendor_name : chat.buyer_name;
+
+    const payload = {
+      message_id: message.message_id,
+      chat_id,
+      sender_id,
+      sender_name,
+      receiver_id,
+      receiver_name,
+      message_text,
+      sent_at: message.sent_at,
+    };
+
+    console.log("Real-time message payload:", payload);
+    console.log(`Sent by: ${sender_name} (ID: ${sender_id})`);
+    console.log(`Sent to: ${receiver_name} (ID: ${receiver_id})`);
 
     // Emit real-time message via socket
     const io = getIO();
-    io.to(`user_${receiver_id}`).emit("newMessage", message);
+    const roomName = `user_${receiver_id}`;
+    io.to(roomName).emit("newMessage", message);
 
     res.status(201).json(message);
   } catch (err) {

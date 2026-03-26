@@ -36,12 +36,14 @@ export const initSocket = (server) => {
     const role = socket.user.role;
 
     console.log(
-      `User connected: ${userID} (Role: ${role}, Socket index: ${socket.id})`,
+      `User connected: ${userID} (Role: ${role}, Socket ID: ${socket.id})`,
     );
 
     socket.join(`user_${userID}`);
+    console.log(`User ${userID} joined room: user_${userID}`);
     if (role) {
       socket.join(`role_${role}`);
+      console.log(`User ${userID} joined role room: role_${role}`);
     }
 
     socket.on("joinRoom", (roomName) => {
