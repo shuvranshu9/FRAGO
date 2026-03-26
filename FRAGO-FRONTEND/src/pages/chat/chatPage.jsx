@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Search,
   MoreVertical,
@@ -95,7 +96,14 @@ const MOCK_MESSAGES = [
 ];
 
 export default function ChatPage() {
-  const [selectedChat, setSelectedChat] = useState(MOCK_FRIENDS[0]);
+  const location = useLocation();
+  const { vendorId, vendorName } = location.state || {};
+
+  const [selectedChat, setSelectedChat] = useState(
+    vendorId
+      ? { id: vendorId, name: vendorName, role: "vendor", status: "online" }
+      : MOCK_FRIENDS[0],
+  );
   const [messages, setMessages] = useState(MOCK_MESSAGES);
   const [inputValue, setInputValue] = useState("");
   const [showSidebar, setShowSidebar] = useState(true);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   MapPin,
@@ -22,6 +22,7 @@ import {
   Mail,
   Phone,
   Users,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
@@ -45,6 +46,21 @@ const ProductDetailsPage = () => {
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const navigate = useNavigate();
+
+  const handleChatWithVendor = () => {
+    if (!token) {
+      toast.error("Please login to chat with vendor");
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+    navigate("/chat", {
+      state: {
+        vendorId: product.vendor_id,
+        vendorName: product.vendor_name,
+      },
+    });
+  };
 
   const handleNextImage = useCallback(() => {
     if (!product?.images) return;
@@ -599,6 +615,14 @@ const ProductDetailsPage = () => {
                   <h3 className="text-xl font-serif font-bold text-gray-900">
                     Vendor Information
                   </h3>
+                  <button
+                    onClick={handleChatWithVendor}
+                    className="ml-auto flex items-center gap-2 bg-green-50 text-green-900 px-4 py-2 rounded-xl text-sm font-bold border border-green-100 hover:bg-green-100 transition-all active:scale-95"
+                    title="Chat with Vendor"
+                  >
+                    <MessageCircle size={18} />
+                    <span>Chat with Vendor</span>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
