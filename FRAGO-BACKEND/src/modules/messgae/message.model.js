@@ -22,3 +22,10 @@ export const getMessagesByChatId = async (chatId) => {
   );
   return rows;
 };
+
+export const markMessagesAsRead = async (chatId, userId) => {
+  await pool.execute(
+    "UPDATE message SET is_read = 1 WHERE chat_id = ? AND sender_id != ? AND is_read = 0",
+    [chatId, userId],
+  );
+};

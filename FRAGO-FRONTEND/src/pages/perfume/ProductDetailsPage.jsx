@@ -86,8 +86,7 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const response = await api.get(`/perfume/${id}`, { headers });
+        const response = await api.get(`/perfume/${id}`);
         if (response.data.success) {
           const fetchedProduct = response.data.data;
           setProduct(fetchedProduct);

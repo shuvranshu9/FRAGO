@@ -15,16 +15,61 @@ import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import Recommendation from "./Recommendation";
+import api from "../../utils/api";
+import { initSocket } from "../../socket/socketLogic";
 
 const Navbar = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
   const { wishlistCount } = useWishlist();
   const { cartCount } = useCart();
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const location = useLocation();
   const [isRecommendOpen, setIsRecommendOpen] = useState(false);
+
+  // Fetch unread messages count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get("/chat");
+        const chats = response.data;
+        const count = chats.reduce((acc, chat) => acc + (chat.unread_count || 0), 0);
+        setUnreadMessagesCount(count);
+      } catch (error) {
+        console.error("Error fetching unread count:", error);
+      }
+    };
+
+    if (isAuthenticated && token) {
+      fetchUnreadCount();
+      
+      const socket = initSocket(token);
+      const handleNewMessage = (message) => {
+        // Increment count if the message is from someone else
+        if (message.sender_id !== user?.userID) {
+          // If we're not on the chat page or not on the active chat, increment
+          // (Simplification: just re-fetch for accuracy or increment)
+          setUnreadMessagesCount(prev => prev + 1);
+        }
+      };
+
+      socket.on("newMessage", handleNewMessage);
+      
+      // Listen for a custom event when messages are marked as read in the chat page
+      const handleMessagesRead = (e) => {
+        const { count } = e.detail;
+        setUnreadMessagesCount(prev => Math.max(0, prev - count));
+      };
+      window.addEventListener("messagesRead", handleMessagesRead);
+
+      return () => {
+        socket.off("newMessage", handleNewMessage);
+        window.removeEventListener("messagesRead", handleMessagesRead);
+      };
+    }
+  }, [isAuthenticated, token, user?.userID]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -218,10 +263,17 @@ const Navbar = () => {
                     : "text-gray-600 hover:text-green-900"
                 }`}
               >
-                <MessageCircleMore
-                  size={22}
-                  className="mr-2 group-hover:scale-105 transition-transform"
-                />
+                <div className="relative">
+                  <MessageCircleMore
+                    size={22}
+                    className="mr-2 group-hover:scale-105 transition-transform"
+                  />
+                  {unreadMessagesCount > 0 && (
+                    <span className="absolute -top-2 -right-0.5 bg-green-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full animate-in zoom-in duration-300">
+                      {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+                    </span>
+                  )}
+                </div>
               </Link>
             </div>
           </div>

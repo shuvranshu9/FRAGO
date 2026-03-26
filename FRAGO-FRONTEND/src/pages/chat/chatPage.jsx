@@ -13,102 +13,27 @@ import {
   Circle,
   User,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../utils/api";
+import { initSocket } from "../../socket/socketLogic";
+import { toast } from "react-toastify";
 
-const MOCK_FRIENDS = [
-  {
-    id: 1,
-    name: "Aura Fragrances",
-    gender: "female",
-    lastMessage: "The new floral collection is now in stock!",
-    time: "10:30 AM",
-    status: "online",
-    unread: 2,
-    role: "vendor",
-  },
-  {
-    id: 2,
-    name: "John Doe",
-    gender: "male",
-    lastMessage: "Is the discount still valid for bulk orders?",
-    time: "Yesterday",
-    status: "offline",
-    unread: 0,
-    role: "buyer",
-  },
-  {
-    id: 3,
-    name: "Luxury Scents Co.",
-    gender: "female",
-    lastMessage: "Thank you for your purchase!",
-    time: "Monday",
-    status: "online",
-    unread: 0,
-    role: "vendor",
-  },
-  {
-    id: 4,
-    name: "Sarah Miller",
-    gender: "female",
-    lastMessage: "I love the woody notes in this one.",
-    time: "2 days ago",
-    status: "offline",
-    unread: 5,
-    role: "buyer",
-  },
-];
-
-const MOCK_MESSAGES = [
-  {
-    id: 1,
-    senderId: 0,
-    text: "Hi there! I was looking for the Intense Oud perfume.",
-    time: "10:00 AM",
-    isMe: true,
-  },
-  {
-    id: 2,
-    senderId: 1,
-    text: "Hello! Yes, we have that in stock. It's one of our best-sellers.",
-    time: "10:05 AM",
-    isMe: false,
-  },
-  {
-    id: 3,
-    senderId: 0,
-    text: "Great! Do you offer any discount for 3 bottles?",
-    time: "10:06 AM",
-    isMe: true,
-  },
-  {
-    id: 4,
-    senderId: 1,
-    text: "Of course! We can give you a 15% discount for 3 bottles or more.",
-    time: "10:08 AM",
-    isMe: false,
-  },
-  {
-    id: 5,
-    senderId: 1,
-    text: "The new floral collection is now in stock!",
-    time: "10:30 AM",
-    isMe: false,
-  },
-];
+// Mock data removed
 
 export default function ChatPage() {
   const location = useLocation();
   const { vendorId, vendorName } = location.state || {};
-
-  const [selectedChat, setSelectedChat] = useState(
-    vendorId
-      ? { id: vendorId, name: vendorName, role: "vendor", status: "online" }
-      : MOCK_FRIENDS[0],
-  );
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
+  const { token, user } = useAuth();
+  
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [messageLoading, setMessageLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [showSidebar, setShowSidebar] = useState(true);
   const messagesContainerRef = useRef(null);
-  const isFirstRun = useRef(true);
+  const fetchingChatsRef = useRef(false);
 
   const scrollToBottom = (behavior = "smooth") => {
     if (messagesContainerRef.current) {
@@ -121,47 +46,138 @@ export default function ChatPage() {
   };
 
   useEffect(() => {
-    if (isFirstRun.current) {
-      isFirstRun.current = false;
-      // Scroll to bottom instantly on load
-      scrollToBottom("auto");
-      return;
-    }
-    scrollToBottom("smooth");
-  }, [messages]);
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-
-    const newMessage = {
-      id: messages.length + 1,
-      senderId: 0,
-      text: inputValue,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      isMe: true,
+    const fetchChats = async () => {
+      try {
+        const response = await api.get("/chat");
+        setChats(response.data);
+        
+        // If coming from product page, find or create chat
+        if (vendorId) {
+          const existingChat = response.data.find(c => c.vendor_id === vendorId || c.buyer_id === vendorId);
+          if (existingChat) {
+            setSelectedChat(existingChat);
+          } else {
+            const newChatResponse = await api.post("/chat", { vendorId });
+            const newChat = newChatResponse.data;
+            // Add names for UI consistency (backend might not return them in createChat)
+            newChat.buyer_name = user.full_name;
+            newChat.vendor_name = vendorName;
+            setChats(prev => [newChat, ...prev]);
+            setSelectedChat(newChat);
+          }
+        } else if (response.data.length > 0) {
+          setSelectedChat(response.data[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching chats:", error);
+        toast.error("Failed to load conversations");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setMessages([...messages, newMessage]);
+    if (token && !fetchingChatsRef.current) {
+      fetchingChatsRef.current = true;
+      fetchChats();
+      const socket = initSocket(token);
+      
+      socket.on("newMessage", (message) => {
+        // Update messages if it's the current chat
+        setSelectedChat(currentSelected => {
+          if (currentSelected?.chat_id === message.chat_id) {
+            setMessages(prev => [...prev, message]);
+            // Mark as read immediately if it's the active chat
+            api.put(`/message/mark-read/${message.chat_id}`).catch(err => console.error(err));
+          }
+          return currentSelected;
+        });
+
+        // Update chat list last message and unread count
+        setChats(prev => prev.map(c => {
+          if (c.chat_id === message.chat_id) {
+            const isUnread = selectedChat?.chat_id !== message.chat_id && message.sender_id !== user?.userID;
+            return { 
+              ...c, 
+              last_message: message.message_text, 
+              last_message_time: message.sent_at,
+              unread_count: isUnread ? (c.unread_count || 0) + 1 : (c.unread_count || 0)
+            };
+          }
+          return c;
+        }).sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time)));
+      });
+
+      return () => {
+        socket.off("newMessage");
+      };
+    }
+  }, [token, vendorId, vendorName, user?.full_name, user?.userID, selectedChat?.chat_id]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!selectedChat) return;
+      setMessageLoading(true);
+      try {
+        const response = await api.get(`/message/${selectedChat.chat_id}`);
+        setMessages(response.data);
+        
+        // Mark as read and update navbar
+        if (selectedChat.unread_count > 0) {
+          await api.put(`/message/mark-read/${selectedChat.chat_id}`);
+          window.dispatchEvent(new CustomEvent("messagesRead", { detail: { count: selectedChat.unread_count } }));
+          
+          setChats(prev => prev.map(c => 
+            c.chat_id === selectedChat.chat_id ? { ...c, unread_count: 0 } : c
+          ));
+        }
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        toast.error("Failed to load messages");
+      } finally {
+        setMessageLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [selectedChat?.chat_id, selectedChat]); // Include selectedChat to satisfy lint, but logic uses chat_id
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputValue.trim() || !selectedChat) return;
+
+    const messageText = inputValue;
     setInputValue("");
 
-    // Simple bot reply simulation
-    setTimeout(() => {
-      const botReply = {
-        id: messages.length + 2,
-        senderId: selectedChat.id,
-        text: "This is a demo reply. Real-time updates will be active once connected to the backend!",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        isMe: false,
-      };
-      setMessages((prev) => [...prev, botReply]);
-    }, 1000);
+    try {
+      const response = await api.post("/message", {
+        chat_id: selectedChat.chat_id,
+        message_text: messageText
+      });
+      
+      const newMessage = response.data;
+      setMessages(prev => [...prev, newMessage]);
+      
+      // Update chat list last message
+      setChats(prev => prev.map(c => {
+        if (c.chat_id === selectedChat.chat_id) {
+          return { ...c, last_message: newMessage.message_text, last_message_time: newMessage.sent_at };
+        }
+        return c;
+      }).sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time)));
+
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+    }
+  };
+
+  const getChatPartnerName = (chat) => {
+    if (!chat) return "";
+    return chat.buyer_id === user?.userID ? chat.vendor_name : chat.buyer_name;
   };
 
   return (
@@ -195,58 +211,67 @@ export default function ChatPage() {
 
         {/* Chat List */}
         <div className="flex-1 overflow-y-auto scrollbar-hide">
-          {MOCK_FRIENDS.map((chat) => (
-            <div
-              key={chat.id}
-              onClick={() => {
-                setSelectedChat(chat);
-                if (window.innerWidth < 768) setShowSidebar(false);
-              }}
-              className={`
-                p-4 flex items-center gap-4 cursor-pointer transition-all duration-200 border-l-4
-                ${
-                  selectedChat.id === chat.id
-                    ? "bg-purple-50/50 border-purple-600"
-                    : "bg-white border-transparent hover:bg-gray-50"
-                }
-              `}
-            >
-              <div className="relative">
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${chat.gender === "female" ? "bg-pink-100 text-pink-500" : "bg-blue-100 text-blue-500"}`}
-                >
-                  <User className="w-6 h-6" />
-                </div>
-                {chat.status === "online" && (
-                  <Circle className="w-3 h-3 fill-green-500 text-green-500 absolute bottom-0 right-0 border-2 border-white rounded-full" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center mb-1">
-                  <h3
-                    className={`font-semibold truncate ${selectedChat.id === chat.id ? "text-purple-900" : "text-gray-800"}`}
-                  >
-                    {chat.name}
-                  </h3>
-                  <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                    {chat.time}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <p
-                    className={`text-xs truncate ${chat.unread > 0 ? "text-gray-900 font-medium" : "text-gray-500"}`}
-                  >
-                    {chat.lastMessage}
-                  </p>
-                  {chat.unread > 0 && (
-                    <span className="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                      {chat.unread}
-                    </span>
-                  )}
-                </div>
-              </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-40 space-y-2 text-gray-400">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <p className="text-xs">Loading conversations...</p>
             </div>
-          ))}
+          ) : chats.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40 text-gray-400 p-4">
+              <p className="text-sm text-center">No conversations yet.</p>
+            </div>
+          ) : (
+            chats.map((chat) => (
+              <div
+                key={chat.chat_id}
+                onClick={() => {
+                  setSelectedChat(chat);
+                  if (window.innerWidth < 768) setShowSidebar(false);
+                }}
+                className={`
+                  p-4 flex items-center gap-4 cursor-pointer transition-all duration-200 border-l-4
+                  ${
+                    selectedChat?.chat_id === chat.chat_id
+                      ? "bg-purple-50/50 border-purple-600"
+                      : "bg-white border-transparent hover:bg-gray-50"
+                  }
+                `}
+              >
+                <div className="relative">
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${chat.vendor_id === user?.userID ? "bg-blue-100 text-blue-500" : "bg-pink-100 text-pink-500"}`}
+                  >
+                    <User className="w-6 h-6" />
+                  </div>
+                  <Circle className="w-3 h-3 fill-green-500 text-green-500 absolute bottom-0 right-0 border-2 border-white rounded-full" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center mb-1">
+                    <h3
+                      className={`font-semibold truncate ${selectedChat?.chat_id === chat.chat_id ? "text-purple-900" : "text-gray-800"}`}
+                    >
+                      {getChatPartnerName(chat)}
+                    </h3>
+                    <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
+                      {chat.last_message_time ? new Date(chat.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p
+                      className={`text-xs truncate ${chat.unread_count > 0 ? "text-gray-900 font-medium" : "text-gray-500"}`}
+                    >
+                      {chat.last_message || "No messages yet"}
+                    </p>
+                    {chat.unread_count > 0 && (
+                      <span className="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center font-bold">
+                        {chat.unread_count}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -270,22 +295,18 @@ export default function ChatPage() {
                 </button>
                 <div className="relative">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${selectedChat.gender === "female" ? "bg-pink-100 text-pink-500" : "bg-blue-100 text-blue-500"}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${selectedChat.vendor_id === user?.userID ? "bg-blue-100 text-blue-500" : "bg-pink-100 text-pink-500"}`}
                   >
                     <User className="w-5 h-5" />
                   </div>
-                  {selectedChat.status === "online" && (
-                    <Circle className="w-2.5 h-2.5 fill-green-500 text-green-500 absolute bottom-0 right-0 border-2 border-white rounded-full" />
-                  )}
+                  <Circle className="w-2.5 h-2.5 fill-green-500 text-green-500 absolute bottom-0 right-0 border-2 border-white rounded-full" />
                 </div>
                 <div>
                   <h2 className="font-bold text-gray-800 leading-tight">
-                    {selectedChat.name}
+                    {getChatPartnerName(selectedChat)}
                   </h2>
                   <span className="text-[10px] text-green-600 font-medium tracking-wide uppercase">
-                    {selectedChat.status === "online"
-                      ? "Active now"
-                      : "Offline"}
+                    Active now
                   </span>
                 </div>
               </div>
@@ -307,38 +328,52 @@ export default function ChatPage() {
               ref={messagesContainerRef}
               className="flex-1 overflow-y-auto p-6 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-opacity-5 scroll-smooth"
             >
-              <div className="flex justify-center mb-6">
-                <span className="text-[10px] bg-gray-100 text-gray-400 py-1 px-3 rounded-full font-medium uppercase tracking-widest">
-                  Today
-                </span>
-              </div>
-
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.isMe ? "justify-end" : "justify-start"} animate-slide-up`}
-                >
-                  <div
-                    className={`
-                    max-w-[80%] lg:max-w-[70%] p-3 rounded-2xl shadow-sm text-sm relative
-                    ${
-                      msg.isMe
-                        ? "bg-purple-600 text-white rounded-tr-none"
-                        : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
-                    }
-                  `}
-                  >
-                    <p className="leading-relaxed">{msg.text}</p>
-                    <div
-                      className={`flex items-center gap-1 mt-1 justify-end ${msg.isMe ? "text-purple-200" : "text-gray-400"}`}
-                    >
-                      <span className="text-[9px] uppercase">{msg.time}</span>
-                      {msg.isMe && <CheckCheck className="w-3 h-3" />}
-                    </div>
-                  </div>
+              {messageLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
                 </div>
-              ))}
-              {/* End anchor (scrolled via Ref) */}
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                  <p>No messages in this conversation yet.</p>
+                  <p className="text-xs">Start the conversation below!</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-center mb-6">
+                    <span className="text-[10px] bg-gray-100 text-gray-400 py-1 px-3 rounded-full font-medium uppercase tracking-widest">
+                      Conversation Started
+                    </span>
+                  </div>
+
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.message_id}
+                      className={`flex ${msg.sender_id === user?.userID ? "justify-end" : "justify-start"} animate-slide-up`}
+                    >
+                      <div
+                        className={`
+                        max-w-[80%] lg:max-w-[70%] p-3 rounded-2xl shadow-sm text-sm relative
+                        ${
+                          msg.sender_id === user?.userID
+                            ? "bg-purple-600 text-white rounded-tr-none"
+                            : "bg-white text-gray-800 rounded-tl-none border border-gray-100"
+                        }
+                      `}
+                      >
+                        <p className="leading-relaxed">{msg.message_text}</p>
+                        <div
+                          className={`flex items-center gap-1 mt-1 justify-end ${msg.sender_id === user?.userID ? "text-purple-200" : "text-gray-400"}`}
+                        >
+                          <span className="text-[9px] uppercase">
+                            {new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {msg.sender_id === user?.userID && <CheckCheck className="w-3 h-3" />}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
 
             {/* Input Area */}

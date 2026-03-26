@@ -1,4 +1,4 @@
-import { createMessage, getMessagesByChatId } from "./message.model.js";
+import { createMessage, getMessagesByChatId, markMessagesAsRead } from "./message.model.js";
 import { getChatById } from "../chat/chat.model.js";
 import { getIO } from "../../socket/socket.js";
 
@@ -53,7 +53,24 @@ export const getMessages = async (req, res, next) => {
     }
 
     const messages = await getMessagesByChatId(chatId);
+    
+    // Mark messages as read asynchronously
+    markMessagesAsRead(chatId, userId).catch(err => console.error("Error marking messages as read:", err));
+
     res.status(200).json(messages);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const markAsRead = async (req, res, next) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user.userID;
+
+    await markMessagesAsRead(chatId, userId);
+    
+    res.status(200).json({ success: true });
   } catch (err) {
     next(err);
   }
