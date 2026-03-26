@@ -16,9 +16,10 @@ import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { useSocket } from "../../context/SocketContext";
 import Recommendation from "./Recommendation";
+import api from "../../utils/api";
 
 const Navbar = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
   const { wishlistCount } = useWishlist();
   const { cartCount } = useCart();
   const { unreadMessagesCount } = useSocket();
@@ -27,6 +28,27 @@ const Navbar = () => {
   const lastScrollY = useRef(0);
   const location = useLocation();
   const [isRecommendOpen, setIsRecommendOpen] = useState(false);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await api.get("/order", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const pending = response.data.filter(
+          (order) => order.order_status.toLowerCase() === "pending",
+        );
+        setPendingOrdersCount(pending.length);
+      } catch (error) {
+        console.error("Error fetching orders for navbar:", error);
+      }
+    };
+
+    if (isAuthenticated && token) {
+      fetchOrders();
+    }
+  }, [isAuthenticated, token]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -201,16 +223,23 @@ const Navbar = () => {
               </Link>
               <Link
                 to="/account/orders"
-                className={`hidden lg:flex items-center transition-colors group ${
+                className={`hidden lg:flex items-center transition-colors group relative ${
                   isActiveLink("/account/orders")
                     ? "text-green-900"
                     : "text-gray-600 hover:text-green-900"
                 }`}
               >
-                <Package
-                  size={22}
-                  className="group-hover:scale-110 transition-transform"
-                />
+                <div className="relative">
+                  <Package
+                    size={22}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                  {pendingOrdersCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-green-600 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full animate-in zoom-in duration-300">
+                      {pendingOrdersCount}
+                    </span>
+                  )}
+                </div>
               </Link>
               <Link
                 to="/chat"
@@ -491,10 +520,17 @@ const Navbar = () => {
                       : "text-gray-700 hover:text-green-900 hover:bg-green-50"
                   }`}
                 >
-                  <Package
-                    size={20}
-                    className={`mr-3 ${isActiveLink("/account/orders") ? "text-green-500" : "text-gray-400"}`}
-                  />
+                  <div className="relative mr-3">
+                    <Package
+                      size={20}
+                      className={`${isActiveLink("/account/orders") ? "text-green-500" : "text-gray-400"}`}
+                    />
+                    {pendingOrdersCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-green-600 text-white text-[8px] font-bold h-3.5 w-3.5 flex items-center justify-center rounded-full">
+                        {pendingOrdersCount}
+                      </span>
+                    )}
+                  </div>
                   <span className="font-medium">My Orders</span>
                   {isActiveLink("/account/orders") && (
                     <span className="ml-auto text-green-600 text-xs">
