@@ -25,7 +25,7 @@ export default function ChatPage() {
   const { vendorId, vendorName } = location.state || {};
   const { user, isAuthenticated } = useAuth();
   const { socket, decrementUnreadCount } = useSocket();
-  
+
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -56,10 +56,12 @@ export default function ChatPage() {
       try {
         const response = await api.get("/chat");
         setChats(response.data);
-        
+
         // If coming from product page, find or create chat
         if (vendorId) {
-          const existingChat = response.data.find(c => c.vendor_id === vendorId || c.buyer_id === vendorId);
+          const existingChat = response.data.find(
+            (c) => c.vendor_id === vendorId || c.buyer_id === vendorId,
+          );
           if (existingChat) {
             setSelectedChat(existingChat);
           } else {
@@ -67,7 +69,7 @@ export default function ChatPage() {
             const newChat = newChatResponse.data;
             newChat.buyer_name = user?.full_name;
             newChat.vendor_name = vendorName;
-            setChats(prev => [newChat, ...prev]);
+            setChats((prev) => [newChat, ...prev]);
             setSelectedChat(newChat);
           }
         } else if (response.data.length > 0 && !selectedChatRef.current) {
@@ -92,34 +94,47 @@ export default function ChatPage() {
       const handleNewMessage = (message) => {
         // Update messages if it's the current chat
         if (selectedChatRef.current?.chat_id === message.chat_id) {
-            setMessages(prev => {
-              if (prev.find(m => m.message_id === message.message_id)) return prev;
-              return [...prev, message];
-            });
-            // Mark as read immediately if it's the active chat
-            api.put(`/message/mark-read/${message.chat_id}`).catch(err => console.error(err));
+          setMessages((prev) => {
+            if (prev.find((m) => m.message_id === message.message_id))
+              return prev;
+            return [...prev, message];
+          });
+          // Mark as read immediately if it's the active chat
+          api
+            .put(`/message/mark-read/${message.chat_id}`)
+            .catch((err) => console.error(err));
         }
 
         // Update chat list last message and unread count
-        setChats(prev => prev.map(c => {
-          if (c.chat_id === message.chat_id) {
-            const isActive = selectedChatRef.current?.chat_id === message.chat_id;
-            const isFromOther = message.sender_id !== user?.userID;
-            const isUnread = !isActive && isFromOther;
-            
-            return { 
-              ...c, 
-              last_message: message.message_text, 
-              last_message_time: message.sent_at,
-              unread_count: isUnread ? (c.unread_count || 0) + 1 : (c.unread_count || 0)
-            };
-          }
-          return c;
-        }).sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time)));
+        setChats((prev) =>
+          prev
+            .map((c) => {
+              if (c.chat_id === message.chat_id) {
+                const isActive =
+                  selectedChatRef.current?.chat_id === message.chat_id;
+                const isFromOther = message.sender_id !== user?.userID;
+                const isUnread = !isActive && isFromOther;
+
+                return {
+                  ...c,
+                  last_message: message.message_text,
+                  last_message_time: message.sent_at,
+                  unread_count: isUnread
+                    ? (c.unread_count || 0) + 1
+                    : c.unread_count || 0,
+                };
+              }
+              return c;
+            })
+            .sort(
+              (a, b) =>
+                new Date(b.last_message_time) - new Date(a.last_message_time),
+            ),
+        );
       };
 
       socket.on("newMessage", handleNewMessage);
-      
+
       return () => {
         socket.off("newMessage", handleNewMessage);
       };
@@ -133,15 +148,19 @@ export default function ChatPage() {
       try {
         const response = await api.get(`/message/${selectedChat.chat_id}`);
         setMessages(response.data);
-        
+
         // Mark as read and update navbar
         if (selectedChat.unread_count > 0) {
           await api.put(`/message/mark-read/${selectedChat.chat_id}`);
           decrementUnreadCount(selectedChat.unread_count);
-          
-          setChats(prev => prev.map(c => 
-            c.chat_id === selectedChat.chat_id ? { ...c, unread_count: 0 } : c
-          ));
+
+          setChats((prev) =>
+            prev.map((c) =>
+              c.chat_id === selectedChat.chat_id
+                ? { ...c, unread_count: 0 }
+                : c,
+            ),
+          );
         }
       } catch (error) {
         console.error("Error fetching messages:", error);
@@ -152,7 +171,7 @@ export default function ChatPage() {
     };
 
     fetchMessages();
-  }, [selectedChat?.chat_id, selectedChat, decrementUnreadCount]); // Include selectedChat to satisfy lint, but logic uses chat_id
+  }, [selectedChat?.chat_id, selectedChat, decrementUnreadCount]);
 
   useEffect(() => {
     scrollToBottom();
@@ -168,23 +187,34 @@ export default function ChatPage() {
     try {
       const response = await api.post("/message", {
         chat_id: selectedChat.chat_id,
-        message_text: messageText
+        message_text: messageText,
       });
-      
+
       const newMessage = response.data;
-      setMessages(prev => {
-        if (prev.find(m => m.message_id === newMessage.message_id)) return prev;
+      setMessages((prev) => {
+        if (prev.find((m) => m.message_id === newMessage.message_id))
+          return prev;
         return [...prev, newMessage];
       });
-      
-      // Update chat list last message
-      setChats(prev => prev.map(c => {
-        if (c.chat_id === selectedChat.chat_id) {
-          return { ...c, last_message: newMessage.message_text, last_message_time: newMessage.sent_at };
-        }
-        return c;
-      }).sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time)));
 
+      // Update chat list last message
+      setChats((prev) =>
+        prev
+          .map((c) => {
+            if (c.chat_id === selectedChat.chat_id) {
+              return {
+                ...c,
+                last_message: newMessage.message_text,
+                last_message_time: newMessage.sent_at,
+              };
+            }
+            return c;
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.last_message_time) - new Date(a.last_message_time),
+          ),
+      );
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message");
@@ -197,7 +227,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-[600px] lg:h-[560px] bg-gray-50 overflow-hidden font-sans border border-gray-100 rounded-xl m-2 lg:m-4 shadow-2xl animate-fade-in">
+    <div className="flex h-[700px] lg:h-[560px] bg-gray-50 overflow-hidden font-sans border border-gray-100 rounded-xl m-2 lg:m-4 shadow-2xl animate-fade-in -mt-8">
       {/* Sidebar */}
       <div
         className={`
@@ -206,7 +236,7 @@ export default function ChatPage() {
       `}
       >
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-50 flex flex-col gap-4">
+        <div className="p-4 border-b border-gray-50 flex flex-col gap-4 ">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Messages
@@ -269,7 +299,12 @@ export default function ChatPage() {
                       {getChatPartnerName(chat)}
                     </h3>
                     <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                      {chat.last_message_time ? new Date(chat.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                      {chat.last_message_time
+                        ? new Date(chat.last_message_time).toLocaleTimeString(
+                            [],
+                            { hour: "2-digit", minute: "2-digit" },
+                          )
+                        : ""}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -342,7 +377,7 @@ export default function ChatPage() {
             {/* Messages Area */}
             <div
               ref={messagesContainerRef}
-              className="flex-1 overflow-y-auto p-6 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-opacity-5 scroll-smooth"
+              className="flex-1 overflow-y-auto p-6 space-y-4 bg-opacity-5 scroll-smooth"
             >
               {messageLoading ? (
                 <div className="flex items-center justify-center h-full">
@@ -381,9 +416,14 @@ export default function ChatPage() {
                           className={`flex items-center gap-1 mt-1 justify-end ${msg.sender_id === user?.userID ? "text-purple-200" : "text-gray-400"}`}
                         >
                           <span className="text-[9px] uppercase">
-                            {new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(msg.sent_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
-                          {msg.sender_id === user?.userID && <CheckCheck className="w-3 h-3" />}
+                          {msg.sender_id === user?.userID && (
+                            <CheckCheck className="w-3 h-3" />
+                          )}
                         </div>
                       </div>
                     </div>

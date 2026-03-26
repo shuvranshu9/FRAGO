@@ -1,7 +1,14 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { io } from 'socket.io-client';
-import { useAuth } from './AuthContext';
-import api from '../utils/api';
+/* eslint-disable react-refresh/only-export-components */
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
+import { io } from "socket.io-client";
+import { useAuth } from "./AuthContext";
+import api from "../utils/api";
 
 const SocketContext = createContext(undefined);
 
@@ -29,10 +36,10 @@ export const SocketProvider = ({ children }) => {
     }
 
     const SOCKET_URL = "http://localhost:8000";
-    
+
     // Cleanup if token changed or already exists
     if (socketRef.current) {
-        socketRef.current.disconnect();
+      socketRef.current.disconnect();
     }
 
     console.log("Centralized Socket: Initializing for user:", user?.userID);
@@ -58,9 +65,8 @@ export const SocketProvider = ({ children }) => {
     });
 
     const handleNewMessage = (message) => {
-      // Increment count if the message is from someone else
       if (message.sender_id !== user?.userID) {
-        setUnreadMessagesCount(prev => prev + 1);
+        setUnreadMessagesCount((prev) => prev + 1);
       }
     };
 
@@ -71,7 +77,10 @@ export const SocketProvider = ({ children }) => {
       try {
         const response = await api.get("/chat");
         const chats = response.data;
-        const count = chats.reduce((acc, chat) => acc + (chat.unread_count || 0), 0);
+        const count = chats.reduce(
+          (acc, chat) => acc + (chat.unread_count || 0),
+          0,
+        );
         setUnreadMessagesCount(count);
       } catch (error) {
         console.error("Error fetching unread count:", error);
@@ -88,17 +97,19 @@ export const SocketProvider = ({ children }) => {
   }, [token, isAuthenticated, user?.userID]);
 
   const decrementUnreadCount = (count) => {
-    setUnreadMessagesCount(prev => Math.max(0, prev - count));
+    setUnreadMessagesCount((prev) => Math.max(0, prev - count));
   };
 
   return (
-    <SocketContext.Provider value={{
-      socket,
-      isConnected,
-      unreadMessagesCount,
-      decrementUnreadCount,
-      setUnreadMessagesCount
-    }}>
+    <SocketContext.Provider
+      value={{
+        socket,
+        isConnected,
+        unreadMessagesCount,
+        decrementUnreadCount,
+        setUnreadMessagesCount,
+      }}
+    >
       {children}
     </SocketContext.Provider>
   );
