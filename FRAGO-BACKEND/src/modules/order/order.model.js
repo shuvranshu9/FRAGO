@@ -103,6 +103,15 @@ export const getOrderById = async (orderId) => {
   };
 };
 
+// Get minimal order metadata (for badges/realtime events)
+export const getOrderMetaById = async (orderId) => {
+  const [rows] = await pool.query(
+    "SELECT order_id, user_id, order_status FROM order_table WHERE order_id = ?",
+    [orderId],
+  );
+  return rows[0] || null;
+};
+
 // Update order status (Admin/Vendor)
 export const updateOrderStatus = async (orderId, status) => {
   const conn = await pool.getConnection();

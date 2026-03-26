@@ -15,40 +15,21 @@ import { useAuth } from "../../context/AuthContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { useSocket } from "../../context/SocketContext";
+import { useOrders } from "../../context/OrdersContext";
 import Recommendation from "./Recommendation";
-import api from "../../utils/api";
 
 const Navbar = () => {
-  const { user, isAuthenticated, token } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { wishlistCount } = useWishlist();
   const { cartCount } = useCart();
   const { unreadMessagesCount } = useSocket();
+  const { pendingOrdersCount } = useOrders();
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const location = useLocation();
   const [isRecommendOpen, setIsRecommendOpen] = useState(false);
-  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await api.get("/order", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const pending = response.data.filter(
-          (order) => order.order_status.toLowerCase() === "pending",
-        );
-        setPendingOrdersCount(pending.length);
-      } catch (error) {
-        console.error("Error fetching orders for navbar:", error);
-      }
-    };
-
-    if (isAuthenticated && token) {
-      fetchOrders();
-    }
-  }, [isAuthenticated, token]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {

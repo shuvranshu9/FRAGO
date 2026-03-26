@@ -1,5 +1,19 @@
 import * as OrderModel from "./order.model.js";
 import * as CartModel from "../cart/cart.model.js";
+import { getIO } from "../../socket/socket.js";
+
+const emitOrderUpdated = (userId, orderId, status) => {
+  try {
+    const io = getIO();
+    io.to(`user_${userId}`).emit("orderUpdated", {
+      orderId: Number(orderId),
+      status,
+    });
+  } catch (err) {
+    // Socket may not be initialized in some environments (e.g., tests)
+    console.warn("Socket emit skipped (orderUpdated):", err.message);
+  }
+};
 
 // Create order from cart
 export const checkoutController = async (req, res) => {
@@ -44,6 +58,9 @@ export const checkoutController = async (req, res) => {
 
     // Clear cart
     await CartModel.clearCart(userId);
+
+    // Real-time: pending count should increase immediately
+    emitOrderUpdated(userId, orderId, "pending");
 
     res.status(201).json({
       message: "Order placed successfully",
@@ -119,6 +136,11 @@ export const updateOrderStatusController = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    const meta = await OrderModel.getOrderMetaById(orderId);
+    if (meta?.user_id) {
+      emitOrderUpdated(meta.user_id, orderId, meta.order_status);
+    }
+
     res.json({ message: "Order status updated" });
   } catch (err) {
     console.error("Error updating order status:", err);
@@ -133,6 +155,8 @@ export const cancelOrderController = async (req, res) => {
     const { orderId } = req.params;
 
     await OrderModel.cancelOrder(orderId, userId);
+
+    emitOrderUpdated(userId, orderId, "cancelled");
 
     res.json({ message: "Order cancelled successfully" });
   } catch (err) {

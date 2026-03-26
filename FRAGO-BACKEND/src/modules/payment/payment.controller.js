@@ -1,8 +1,21 @@
 import axios from "axios";
 import * as PaymentModel from "./payment.model.js";
 import dotenv from "dotenv";
+import { getIO } from "../../socket/socket.js";
 
 dotenv.config();
+
+const emitOrderUpdated = (userId, orderId, status) => {
+  try {
+    const io = getIO();
+    io.to(`user_${userId}`).emit("orderUpdated", {
+      orderId: Number(orderId),
+      status,
+    });
+  } catch (err) {
+    console.warn("Socket emit skipped (orderUpdated):", err.message);
+  }
+};
 
 const KHALTI_SECRET_KEY = process.env.KHALTI_SECRET_KEY;
 const KHALTI_INITIATE_URL = "https://a.khalti.com/api/v2/epayment/initiate/";
@@ -94,6 +107,12 @@ export const verifyPaymentController = async (req, res) => {
         "Completed",
         response.data.transaction_id,
       );
+
+      // Real-time: pending count should decrease (pending -> paid)
+      const order = await PaymentModel.getOrderForPayment(orderId);
+      if (order?.user_id) {
+        emitOrderUpdated(order.user_id, orderId, "paid");
+      }
 
       return res.json({
         message: "Payment verified successfully",

@@ -63,7 +63,7 @@ export const updatePaymentAndOrder = async (
 // Get order details for Khalti initiation
 export const getOrderForPayment = async (orderId) => {
   const [rows] = await pool.query(
-    `SELECT o.order_id, o.total_amount, u.full_name, u.email, u.phone 
+    `SELECT o.order_id, o.user_id, o.total_amount, u.full_name, u.email, u.phone 
      FROM order_table o
      JOIN user u ON o.user_id = u.user_id
      WHERE o.order_id = ?`,

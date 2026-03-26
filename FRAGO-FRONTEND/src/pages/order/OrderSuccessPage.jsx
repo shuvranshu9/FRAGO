@@ -20,6 +20,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useOrders } from "../../context/OrdersContext";
 import api from "../../utils/api";
 import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/global/ConfirmationModal";
@@ -28,6 +29,7 @@ const OrderSuccessPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const { token } = useAuth();
+  const { refreshPendingOrdersCount } = useOrders();
   const [searchParams] = useSearchParams();
   const isEditModeParam = searchParams.get("edit") === "true";
 
@@ -62,6 +64,8 @@ const OrderSuccessPage = () => {
                 ? `Payment Status: ${status}`
                 : "Payment verification failed. Please check your account.",
             );
+          } finally {
+            refreshPendingOrdersCount();
           }
         }
 
@@ -81,7 +85,7 @@ const OrderSuccessPage = () => {
     if (orderId && token) {
       fetchOrderDetails();
     }
-  }, [orderId, token, navigate, searchParams]);
+  }, [orderId, token, navigate, searchParams, refreshPendingOrdersCount]);
 
   useEffect(() => {
     if (order && isEditModeParam && order.order_status === "pending") {

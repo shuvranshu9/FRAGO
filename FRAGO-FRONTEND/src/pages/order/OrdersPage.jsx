@@ -11,12 +11,14 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useOrders } from "../../context/OrdersContext";
 import api from "../../utils/api";
 import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/global/ConfirmationModal";
 
 const OrdersPage = () => {
   const { token } = useAuth();
+  const { refreshPendingOrdersCount } = useOrders();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -64,6 +66,7 @@ const OrdersPage = () => {
             : order,
         ),
       );
+      refreshPendingOrdersCount();
     } catch (error) {
       console.error("Error cancelling order:", error);
       toast.error(error.response?.data?.message || "Failed to cancel order");

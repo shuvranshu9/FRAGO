@@ -4,6 +4,7 @@ import { WishlistProvider } from "./context/WishlistContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { SocketProvider } from "./context/SocketContext.jsx";
+import { OrdersProvider } from "./context/OrdersContext.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import ProtectedRoute from "./components/auth/ProtectedRoute.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
@@ -34,10 +35,11 @@ export default function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <ScrollToTop />
-            <Routes>
+        <OrdersProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <ScrollToTop />
+              <Routes>
               {/* ... routes ... */}
               <Route element={<MainLayout />}>
                 <Route path="/" element={<HomePage />} />
@@ -102,9 +104,10 @@ export default function App() {
                   </div>
                 }
               />
-            </Routes>
-          </WishlistProvider>
-        </CartProvider>
+              </Routes>
+            </WishlistProvider>
+          </CartProvider>
+        </OrdersProvider>
 
         {/* Toast notifications */}
         <ToastContainer
