@@ -244,7 +244,7 @@ const Recommendation = ({ isOpen, onClose }) => {
               </h3>
               <p className="text-xs text-green-100 flex items-center">
                 <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                Online | AI Recommendations
+                Perfume Recommendations
               </p>
             </div>
           </div>
@@ -465,9 +465,6 @@ const Recommendation = ({ isOpen, onClose }) => {
         {/* Footer info or Input (Disabled as we use selection buttons) */}
         <div className="bg-white px-6 py-4 border-t border-gray-100">
           <div className="flex items-center text-[11px] text-gray-400 font-medium uppercase tracking-[0.1em] justify-center space-x-4">
-            <span className="flex items-center">
-              <Sparkles size={12} className="mr-1 text-green-600" /> AI Powered
-            </span>
             <span>•</span>
             <span className="flex items-center">
               <ShoppingBag size={12} className="mr-1 text-green-600" /> Curated
