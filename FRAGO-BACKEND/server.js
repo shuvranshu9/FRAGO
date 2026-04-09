@@ -14,7 +14,7 @@ import orderRoutes from "./src/modules/order/order.routes.js";
 import paymentRoutes from "./src/modules/payment/payment.routes.js";
 import reviewRoutes from "./src/modules/review/review.routes.js";
 import chatRoutes from "./src/modules/chat/chat.routes.js";
-import messageRoutes from "./src/modules/messgae/message.routes.js";
+import messageRoutes from "./src/modules/message/message.routes.js";
 
 dotenv.config();
 
