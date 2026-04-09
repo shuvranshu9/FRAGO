@@ -22,7 +22,7 @@ router.use(verifyToken);
 router.post("/", checkoutController);
 router.get("/", getMyOrdersController);
 
-// Vendor endpoints (More specific routes first)
+// Vendor endpoints 
 router.get("/vendor/stats", requireVendor, getVendorStatsController);
 router.get("/vendor/orders", requireVendor, getVendorOrdersController);
 router.get("/vendor/top-products", requireVendor, getVendorTopProductsController);
