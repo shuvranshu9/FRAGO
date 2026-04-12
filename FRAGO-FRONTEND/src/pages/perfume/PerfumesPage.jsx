@@ -14,6 +14,7 @@ const PerfumesPage = () => {
     scent_type: [],
     mood: [],
     brand: [],
+    priceRange: { min: "", max: "" },
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -57,7 +58,27 @@ const PerfumesPage = () => {
       const matchesBrand =
         filters.brand.length === 0 || filters.brand.includes(product.brand);
 
-      return matchesSearch && matchesScent && matchesMood && matchesBrand;
+      const variantPrices = (product.variants || [])
+        .map((v) => Number(v?.price))
+        .filter((p) => Number.isFinite(p) && p >= 0);
+      const productMinPrice = variantPrices.length
+        ? Math.min(...variantPrices)
+        : 0;
+
+      const min = Number(filters.priceRange?.min);
+      const max = Number(filters.priceRange?.max);
+      const hasMin = Number.isFinite(min) && String(filters.priceRange?.min) !== "";
+      const hasMax = Number.isFinite(max) && String(filters.priceRange?.max) !== "";
+      const matchesPrice =
+        (!hasMin || productMinPrice >= min) && (!hasMax || productMinPrice <= max);
+
+      return (
+        matchesSearch &&
+        matchesScent &&
+        matchesMood &&
+        matchesBrand &&
+        matchesPrice
+      );
     });
 
     // Sort result
@@ -153,7 +174,12 @@ const PerfumesPage = () => {
                 </p>
                 <button
                   onClick={() => {
-                    setFilters({ scent_type: [], mood: [], brand: [] });
+                    setFilters({
+                      scent_type: [],
+                      mood: [],
+                      brand: [],
+                      priceRange: { min: "", max: "" },
+                    });
                     setSearchTerm("");
                   }}
                   className="px-10 py-4 bg-green-900 text-white rounded-full font-bold hover:bg-green-800 transition-colors shadow-xl shadow-green-900/10"

@@ -18,10 +18,31 @@ const FilterSidebar = ({
   };
 
   const clearFilters = () => {
-    setFilters({ scent_type: [], mood: [], brand: [] });
+    setFilters({
+      scent_type: [],
+      mood: [],
+      brand: [],
+      priceRange: { min: "", max: "" },
+    });
   };
 
-  const activeCount = Object.values(filters).flat().length;
+  const activeCount =
+    (filters.scent_type?.length || 0) +
+    (filters.mood?.length || 0) +
+    (filters.brand?.length || 0) +
+    (filters.priceRange?.min ? 1 : 0) +
+    (filters.priceRange?.max ? 1 : 0);
+
+  const setPriceRange = (key, value) => {
+    const digitsOnly = String(value ?? "").replace(/[^0-9]/g, "");
+    setFilters((prev) => ({
+      ...prev,
+      priceRange: {
+        ...(prev.priceRange || { min: "", max: "" }),
+        [key]: digitsOnly,
+      },
+    }));
+  };
 
   return (
     <>
@@ -186,6 +207,47 @@ const FilterSidebar = ({
                   </label>
                 ))}
               </div>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                Price Range
+              </h4>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+                    Min (NPR)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={filters.priceRange?.min || ""}
+                    onChange={(e) => setPriceRange("min", e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+                    Max (NPR)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={filters.priceRange?.max || ""}
+                    onChange={(e) => setPriceRange("max", e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                    placeholder="99999"
+                  />
+                </div>
+              </div>
+
+              <p className="mt-2 text-[10px] text-gray-400">
+                Filters by the lowest price of each perfume.
+              </p>
             </div>
           </div>
         </div>
