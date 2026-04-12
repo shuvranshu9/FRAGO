@@ -126,16 +126,75 @@ export const createPerfumeController = async (req, res) => {
 
 export const getAllPerfumesController = async (req, res) => {
   try {
-    const data = await Perfume.getAllPerfumes();
+    const page = Number.parseInt(req.query.page, 10) || 1;
+    const limit = Number.parseInt(req.query.limit, 10) || 12;
+
+    const search = req.query.search ?? req.query.q ?? "";
+    const sortBy = req.query.sortBy ?? "newest";
+
+    const scentTypes = req.query.scent_type ?? req.query.scentTypes;
+    const moods = req.query.mood ?? req.query.moods;
+    const brands = req.query.brand ?? req.query.brands;
+
+    const minPrice =
+      req.query.minPrice !== undefined && req.query.minPrice !== ""
+        ? Number(req.query.minPrice)
+        : undefined;
+    const maxPrice =
+      req.query.maxPrice !== undefined && req.query.maxPrice !== ""
+        ? Number(req.query.maxPrice)
+        : undefined;
+
+    const normalizedPage = Math.max(1, page);
+    const normalizedLimit = Math.min(100, Math.max(1, limit));
+
+    const filters = {
+      search,
+      sortBy,
+      scentTypes,
+      moods,
+      brands,
+      minPrice,
+      maxPrice,
+    };
+
+    const [totalItems, data] = await Promise.all([
+      Perfume.getAllPerfumesCount(filters),
+      Perfume.getAllPerfumes({
+        page: normalizedPage,
+        limit: normalizedLimit,
+        ...filters,
+      }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / normalizedLimit));
+
     res.json({
       success: true,
       data: data || [],
+      page: normalizedPage,
+      limit: normalizedLimit,
+      totalPages,
+      totalItems,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to fetch perfumes",
       data: [],
+    });
+  }
+};
+
+export const getPerfumeFilterOptionsController = async (req, res) => {
+  try {
+    const options = await Perfume.getPerfumeFilterOptions();
+    res.json({ success: true, data: options });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch perfume filter options",
+      data: null,
     });
   }
 };

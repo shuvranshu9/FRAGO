@@ -83,7 +83,121 @@ export const createPerfume = async ({
   }
 };
 
-export const getAllPerfumes = async () => {
+const normalizeStringArray = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.map((v) => String(v).trim()).filter(Boolean);
+  }
+  return String(value)
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+};
+
+const buildPerfumeWhere = ({
+  search,
+  scentTypes,
+  moods,
+  brands,
+  minPrice,
+  maxPrice,
+}) => {
+  const clauses = ["p.is_active = 1"];
+  const params = [];
+
+  if (search && String(search).trim()) {
+    const term = `%${String(search).trim()}%`;
+    clauses.push("(p.name LIKE ? OR p.brand LIKE ?)");
+    params.push(term, term);
+  }
+
+  const scent = normalizeStringArray(scentTypes);
+  if (scent.length) {
+    clauses.push("p.scent_type IN (?)");
+    params.push(scent);
+  }
+
+  const mood = normalizeStringArray(moods);
+  if (mood.length) {
+    clauses.push("p.mood IN (?)");
+    params.push(mood);
+  }
+
+  const brand = normalizeStringArray(brands);
+  if (brand.length) {
+    clauses.push("p.brand IN (?)");
+    params.push(brand);
+  }
+
+  const min = Number(minPrice);
+  if (Number.isFinite(min)) {
+    clauses.push("COALESCE(mp.min_price, 0) >= ?");
+    params.push(min);
+  }
+
+  const max = Number(maxPrice);
+  if (Number.isFinite(max)) {
+    clauses.push("COALESCE(mp.min_price, 0) <= ?");
+    params.push(max);
+  }
+
+  return {
+    whereSql: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "",
+    params,
+  };
+};
+
+export const getAllPerfumesCount = async (filters = {}) => {
+  const { whereSql, params } = buildPerfumeWhere(filters);
+
+  const [[row]] = await pool.query(
+    `
+    SELECT COUNT(*) AS total
+    FROM perfume p
+    LEFT JOIN (
+      SELECT perfume_id, MIN(price) AS min_price
+      FROM perfume_variant
+      GROUP BY perfume_id
+    ) mp ON p.perfume_id = mp.perfume_id
+    ${whereSql}
+    `,
+    params,
+  );
+
+  return row?.total ?? 0;
+};
+
+export const getAllPerfumes = async ({
+  page = 1,
+  limit = 12,
+  sortBy = "newest",
+  ...filters
+} = {}) => {
+  const safePage = Number.isFinite(Number(page)) ? Number(page) : 1;
+  const safeLimit = Number.isFinite(Number(limit)) ? Number(limit) : 12;
+  const normalizedPage = Math.max(1, Math.floor(safePage));
+  const normalizedLimit = Math.max(1, Math.floor(safeLimit));
+  const offset = (normalizedPage - 1) * normalizedLimit;
+
+  const { whereSql, params } = buildPerfumeWhere(filters);
+
+  let orderBy = "p.created_at DESC";
+  switch (sortBy) {
+    case "price-asc":
+      orderBy = "COALESCE(mp.min_price, 0) ASC, p.created_at DESC";
+      break;
+    case "price-desc":
+      orderBy = "COALESCE(mp.min_price, 0) DESC, p.created_at DESC";
+      break;
+    case "name-asc":
+      orderBy = "p.name ASC";
+      break;
+    case "newest":
+    default:
+      orderBy = "p.created_at DESC";
+      break;
+  }
+
   const [rows] = await pool.query(
     `
     SELECT 
@@ -91,6 +205,12 @@ export const getAllPerfumes = async () => {
         COALESCE(img.images, JSON_ARRAY()) AS images,
         COALESCE(var.variants, JSON_ARRAY()) AS variants
       FROM perfume p
+
+      LEFT JOIN (
+        SELECT perfume_id, MIN(price) AS min_price
+        FROM perfume_variant
+        GROUP BY perfume_id
+      ) mp ON p.perfume_id = mp.perfume_id
 
       LEFT JOIN (
         SELECT 
@@ -115,12 +235,55 @@ export const getAllPerfumes = async () => {
         GROUP BY perfume_id
       ) var ON p.perfume_id = var.perfume_id
 
-      WHERE p.is_active = 1
-      ORDER BY p.created_at DESC
+      ${whereSql}
+      ORDER BY ${orderBy}
+      LIMIT ? OFFSET ?
     `,
+    [...params, normalizedLimit, offset],
   );
 
   return rows;
+};
+
+export const getPerfumeFilterOptions = async () => {
+  const [scentRows] = await pool.query(
+    `
+    SELECT DISTINCT scent_type
+    FROM perfume
+    WHERE is_active = 1 AND scent_type IS NOT NULL AND scent_type <> ''
+    ORDER BY scent_type ASC
+    `,
+  );
+
+  const [moodRows] = await pool.query(
+    `
+    SELECT DISTINCT mood
+    FROM perfume
+    WHERE is_active = 1 AND mood IS NOT NULL AND mood <> ''
+    ORDER BY mood ASC
+    `,
+  );
+
+  const [brandRows] = await pool.query(
+    `
+    SELECT DISTINCT brand
+    FROM perfume
+    WHERE is_active = 1 AND brand IS NOT NULL AND brand <> ''
+    ORDER BY brand ASC
+    `,
+  );
+
+  const [[minMax]] = await pool.query(
+    `SELECT MIN(price) AS minPrice, MAX(price) AS maxPrice FROM perfume_variant`,
+  );
+
+  return {
+    scent_types: scentRows.map((r) => r.scent_type).filter(Boolean),
+    moods: moodRows.map((r) => r.mood).filter(Boolean),
+    brands: brandRows.map((r) => r.brand).filter(Boolean),
+    minPrice: Number(minMax?.minPrice ?? 0),
+    maxPrice: Number(minMax?.maxPrice ?? 0),
+  };
 };
 
 export const getPerfumesByVendor = async (vendor_id) => {

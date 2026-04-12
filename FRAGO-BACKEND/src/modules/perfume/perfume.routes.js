@@ -2,6 +2,7 @@ import express from "express";
 import {
   createPerfumeController,
   getAllPerfumesController,
+  getPerfumeFilterOptionsController,
   getVendorPerfumesController,
   getPerfumeByIdController,
   updatePerfumeController,
@@ -25,6 +26,7 @@ router.post(
 );
 
 router.get("/", getAllPerfumesController);
+router.get("/options", getPerfumeFilterOptionsController);
 router.get("/vendor", verifyToken, requireVendor, getVendorPerfumesController);
 router.get("/:id", getPerfumeByIdController);
 router.put(

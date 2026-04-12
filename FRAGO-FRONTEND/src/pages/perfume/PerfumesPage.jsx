@@ -1,13 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, SlidersHorizontal, Package } from "lucide-react";
 import api from "../../utils/api";
 import ProductCard from "../../components/perfume/ProductCard";
 import FilterSidebar from "../../components/perfume/FilterSidebar";
 import SortDropdown from "../../components/perfume/SortDropdown";
+import CustomPagination from "../../components/global/CustomPagination";
 
 const PerfumesPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [limit] = useState(12);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [filters, setFilters] = useState({
@@ -16,14 +21,74 @@ const PerfumesPage = () => {
     brand: [],
     priceRange: { min: "", max: "" },
   });
+  const [availableOptions, setAvailableOptions] = useState({
+    scent_types: [],
+    moods: [],
+    brands: [],
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const lastCriteriaKeyRef = useRef("");
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const response = await api.get("/perfume/options");
+        if (response.data?.success && response.data?.data) {
+          setAvailableOptions({
+            scent_types: response.data.data.scent_types || [],
+            moods: response.data.data.moods || [],
+            brands: response.data.data.brands || [],
+          });
+        }
+      } catch {
+        // non-blocking
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   useEffect(() => {
     const fetchPerfumes = async () => {
+      setLoading(true);
       try {
-        const response = await api.get("/perfume");
+        const criteriaKey = JSON.stringify({
+          searchTerm: searchTerm.trim(),
+          sortBy,
+          filters,
+        });
+
+        if (lastCriteriaKeyRef.current !== criteriaKey) {
+          lastCriteriaKeyRef.current = criteriaKey;
+          if (page !== 1) {
+            setLoading(false);
+            setPage(1);
+            return;
+          }
+        }
+
+        const params = {
+          page,
+          limit,
+          sortBy,
+        };
+
+        if (searchTerm.trim()) params.search = searchTerm.trim();
+        if (filters.scent_type?.length)
+          params.scent_type = filters.scent_type.join(",");
+        if (filters.mood?.length) params.mood = filters.mood.join(",");
+        if (filters.brand?.length) params.brand = filters.brand.join(",");
+
+        if (filters.priceRange?.min !== "") params.minPrice = filters.priceRange.min;
+        if (filters.priceRange?.max !== "") params.maxPrice = filters.priceRange.max;
+
+        const response = await api.get("/perfume", {
+          params,
+        });
         if (response.data.success) {
           setProducts(response.data.data);
+          setTotalPages(response.data.totalPages || 1);
+          setTotalItems(response.data.totalItems || 0);
         }
       } catch (error) {
         console.error("Error fetching perfumes:", error);
@@ -32,76 +97,7 @@ const PerfumesPage = () => {
       }
     };
     fetchPerfumes();
-  }, []);
-
-  const availableOptions = useMemo(() => {
-    return {
-      scent_types: [
-        ...new Set(products.map((p) => p.scent_type).filter(Boolean)),
-      ],
-      moods: [...new Set(products.map((p) => p.mood).filter(Boolean))],
-      brands: [...new Set(products.map((p) => p.brand).filter(Boolean))],
-    };
-  }, [products]);
-
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = products.filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesScent =
-        filters.scent_type.length === 0 ||
-        filters.scent_type.includes(product.scent_type);
-      const matchesMood =
-        filters.mood.length === 0 || filters.mood.includes(product.mood);
-      const matchesBrand =
-        filters.brand.length === 0 || filters.brand.includes(product.brand);
-
-      const variantPrices = (product.variants || [])
-        .map((v) => Number(v?.price))
-        .filter((p) => Number.isFinite(p) && p >= 0);
-      const productMinPrice = variantPrices.length
-        ? Math.min(...variantPrices)
-        : 0;
-
-      const min = Number(filters.priceRange?.min);
-      const max = Number(filters.priceRange?.max);
-      const hasMin = Number.isFinite(min) && String(filters.priceRange?.min) !== "";
-      const hasMax = Number.isFinite(max) && String(filters.priceRange?.max) !== "";
-      const matchesPrice =
-        (!hasMin || productMinPrice >= min) && (!hasMax || productMinPrice <= max);
-
-      return (
-        matchesSearch &&
-        matchesScent &&
-        matchesMood &&
-        matchesBrand &&
-        matchesPrice
-      );
-    });
-
-    // Sort result
-    result.sort((a, b) => {
-      const priceA = a.variants?.[0]?.price || 0;
-      const priceB = b.variants?.[0]?.price || 0;
-
-      switch (sortBy) {
-        case "price-asc":
-          return priceA - priceB;
-        case "price-desc":
-          return priceB - priceA;
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "newest":
-          return new Date(b.created_at) - new Date(a.created_at);
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [products, searchTerm, filters, sortBy]);
+  }, [page, limit, searchTerm, sortBy, filters]);
 
   return (
     <div className="min-h-screen bg-[#FCFBFA] pb-10 px-4 md:px-8 -mt-8 md:mt-0">
@@ -160,7 +156,7 @@ const PerfumesPage = () => {
                   ></div>
                 ))}
               </div>
-            ) : filteredAndSortedProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <div className="bg-white rounded-[40px] p-20 text-center border border-gray-100 shadow-sm">
                 <div className="bg-gray-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-200">
                   <Package size={48} strokeWidth={1} />
@@ -181,6 +177,7 @@ const PerfumesPage = () => {
                       priceRange: { min: "", max: "" },
                     });
                     setSearchTerm("");
+                    setSortBy("newest");
                   }}
                   className="px-10 py-4 bg-green-900 text-white rounded-full font-bold hover:bg-green-800 transition-colors shadow-xl shadow-green-900/10"
                 >
@@ -193,16 +190,22 @@ const PerfumesPage = () => {
                   <p className="text-sm text-gray-500 font-medium">
                     Showing{" "}
                     <span className="text-gray-900 font-bold">
-                      {filteredAndSortedProducts.length}
+                      {products.length}
                     </span>{" "}
-                    fragrances
+                    fragrances{totalItems ? ` of ${totalItems}` : ""}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
-                  {filteredAndSortedProducts.map((product) => (
+                  {products.map((product) => (
                     <ProductCard key={product.perfume_id} product={product} />
                   ))}
                 </div>
+
+                <CustomPagination
+                  page={page}
+                  totalPages={totalPages}
+                  onChange={(nextPage) => setPage(nextPage)}
+                />
               </>
             )}
           </div>
