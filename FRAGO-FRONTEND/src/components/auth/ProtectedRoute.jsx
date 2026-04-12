@@ -1,8 +1,31 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+
+const getAuthToastMessage = (pathname) => {
+  if (pathname.startsWith("/wishlist")) {
+    return "Please login to use wishlist.";
+  }
+  if (pathname.startsWith("/cart")) {
+    return "Please login to use cart.";
+  }
+  if (pathname.startsWith("/checkout")) {
+    return "Please login to checkout.";
+  }
+  if (pathname.startsWith("/account/orders")) {
+    return "Please login to view your orders.";
+  }
+  if (pathname.startsWith("/account")) {
+    return "Please login to view your account.";
+  }
+  if (pathname.startsWith("/chat")) {
+    return "Please login to use chat.";
+  }
+  return "Please login to continue.";
+};
 
 const ProtectedRoute = ({ allowedRoles }) => {
   const { isAuthenticated, user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -13,7 +36,16 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          toastMessage: getAuthToastMessage(location.pathname),
+          from: location.pathname,
+        }}
+      />
+    );
   }
 
   if (allowedRoles && !allowedRoles.includes(user?.role)) {

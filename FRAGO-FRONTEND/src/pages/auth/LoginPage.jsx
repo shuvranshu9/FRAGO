@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, User, UserCheck, ArrowLeft } from "lucide-react";
 import LogoImg from "../../assets/global/FRAGO.png";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import api from "../../utils/api";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
@@ -41,12 +41,26 @@ export default function LoginPage() {
 
 function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+  const shownRedirectToast = useRef(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("buyer");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const toastMessage = location.state?.toastMessage;
+
+    if (toastMessage && !shownRedirectToast.current) {
+      shownRedirectToast.current = true;
+      toast.info(toastMessage);
+
+      // Clear state so it doesn't re-toast on refresh/back
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
