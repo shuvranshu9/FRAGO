@@ -122,11 +122,13 @@ function RegisterForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    const nextValue =
+      name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value;
+    setForm({ ...form, [name]: nextValue });
 
     // Real-time validation for touched fields
     if (touched[name]) {
-      const error = validateField(name, value);
+      const error = validateField(name, nextValue);
       setErrors({ ...errors, [name]: error });
     }
   };
@@ -319,7 +321,7 @@ function RegisterForm() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <Input {...getInputProps("full_name")} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -328,8 +330,7 @@ function RegisterForm() {
             {...getInputProps("phone")}
             type="tel"
             inputMode="numeric"
-            pattern="\\d{10}"
-            maxLength={14}
+            maxLength={10}
           />
         </div>
 
