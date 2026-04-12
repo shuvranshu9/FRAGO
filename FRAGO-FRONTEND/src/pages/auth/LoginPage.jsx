@@ -73,6 +73,13 @@ function LoginForm() {
       // Redirect to home page
       navigate("/");
     } catch (err) {
+      const status = err.response?.status;
+
+      if (status === 404) {
+        toast.error("Email not registered. Please sign up.");
+        return;
+      }
+
       const message =
         err.response?.data?.message ||
         "Login failed. Please check your credentials.";

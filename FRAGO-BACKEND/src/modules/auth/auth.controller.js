@@ -142,10 +142,15 @@ export const loginUser = (role) => async (req, res, next) => {
         .json({ message: "Email and password are required" });
     }
 
-    const user = await findUserByEmail(email);
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await findUserByEmail(normalizedEmail);
+
+    if (!user) {
+      return res.status(404).json({ message: "Email not registered" });
+    }
 
     // User not found or wrong role
-    if (!user || user.role !== role) {
+    if (user.role !== role) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
