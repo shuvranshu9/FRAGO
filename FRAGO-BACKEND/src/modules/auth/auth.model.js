@@ -7,6 +7,21 @@ export const findUserByEmail = async (email) => {
   return rows[0];
 };
 
+export const findUserByPhone = async (phone) => {
+  const [rows] = await pool.execute("SELECT * FROM user WHERE phone = ?", [
+    phone,
+  ]);
+  return rows[0];
+};
+
+export const findUserByPhoneExcludingUser = async (phone, userId) => {
+  const [rows] = await pool.execute(
+    "SELECT * FROM user WHERE phone = ? AND user_id != ?",
+    [phone, userId],
+  );
+  return rows[0];
+};
+
 export const createUser = async ({
   full_name,
   email,

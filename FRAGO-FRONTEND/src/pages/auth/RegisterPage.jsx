@@ -71,10 +71,12 @@ function RegisterForm() {
 
       case "phone":
         if (!value.trim()) error = "Phone number is required";
-        else if (!/^[+]?[1-9][\d]{0,15}$/.test(value.replace(/\D/g, "")))
-          error = "Please enter a valid phone number";
-        else if (value.replace(/\D/g, "").length < 10)
-          error = "Phone number must be at least 10 digits";
+        else {
+          const digits = value.replace(/\D/g, "");
+          if (!/^\d{10}$/.test(digits)) {
+            error = "Phone number must be exactly 10 digits";
+          }
+        }
         break;
 
       case "address":
@@ -168,11 +170,13 @@ function RegisterForm() {
     setLoading(true);
 
     try {
+      const normalizedPhone = form.phone.replace(/\D/g, "");
+
       // Prepare data for backend
       const userData = {
         full_name: form.full_name.trim(),
         email: form.email.trim().toLowerCase(),
-        phone: form.phone.trim(),
+        phone: normalizedPhone,
         address: form.address.trim(),
         password: form.password,
       };
@@ -226,6 +230,11 @@ function RegisterForm() {
                 },
               );
             } else if (errorMessage.toLowerCase().includes("phone")) {
+              setErrors((prev) => ({
+                ...prev,
+                phone: "Phone number already registered",
+              }));
+              setTouched((prev) => ({ ...prev, phone: true }));
               toast.error("Phone number already registered.", {
                 position: "top-right",
                 autoClose: 5000,
@@ -237,7 +246,12 @@ function RegisterForm() {
               });
             }
           } else if (err.response.status === 400) {
-            toast.error("Invalid data. Please check your information.", {
+            if (errorMessage.toLowerCase().includes("phone")) {
+              setErrors((prev) => ({ ...prev, phone: errorMessage }));
+              setTouched((prev) => ({ ...prev, phone: true }));
+            }
+
+            toast.error(errorMessage || "Invalid data. Please check your information.", {
               position: "top-right",
               autoClose: 5000,
             });
@@ -310,7 +324,13 @@ function RegisterForm() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input {...getInputProps("email")} type="email" />
-          <Input {...getInputProps("phone")} />
+          <Input
+            {...getInputProps("phone")}
+            type="tel"
+            inputMode="numeric"
+            pattern="\\d{10}"
+            maxLength={14}
+          />
         </div>
 
         <Input {...getInputProps("address")} />
@@ -389,6 +409,7 @@ function Input({
   disabled,
   error,
   touched,
+  ...rest
 }) {
   const [show, setShow] = useState(false);
   const isPassword = type === "password";
@@ -410,6 +431,7 @@ function Input({
           onBlur={onBlur}
           required
           disabled={disabled}
+          {...rest}
           className={`
             w-full px-3 py-2.5 pr-10
             border ${showError ? "border-red-500" : "border-gray-300"}

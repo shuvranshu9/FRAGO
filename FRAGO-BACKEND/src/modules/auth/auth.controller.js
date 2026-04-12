@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import { sendOtpMail } from "../../utils/sendOtp.js";
 import {
   findUserByEmail,
+  findUserByPhone,
+  findUserByPhoneExcludingUser,
   createUser,
   verifyUserOtp,
   saveResetCode,
@@ -12,17 +14,34 @@ import {
 } from "./auth.model.js";
 import { sendResetCodeMail } from "../../utils/sendResetCode.js";
 
+const normalizePhone10 = (phone) => String(phone ?? "").replace(/\D/g, "");
+
+const isValidPhone10 = (phone) => /^\d{10}$/.test(phone);
+
 export const signupBuyer = async (req, res, next) => {
   try {
     const { full_name, email, password, phone, address } = req.body;
 
-    if (!full_name || !email || !password) {
+    const normalizedPhone = normalizePhone10(phone);
+
+    if (!full_name || !email || !password || !normalizedPhone) {
       return res.status(400).json({ message: "Required fields missing" });
+    }
+
+    if (!isValidPhone10(normalizedPhone)) {
+      return res
+        .status(400)
+        .json({ message: "Phone number must be exactly 10 digits" });
     }
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({ message: "Email already registered" });
+    }
+
+    const existingPhone = await findUserByPhone(normalizedPhone);
+    if (existingPhone) {
+      return res.status(409).json({ message: "Phone already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,7 +50,7 @@ export const signupBuyer = async (req, res, next) => {
     await createUser({
       full_name,
       email,
-      phone,
+      phone: normalizedPhone,
       address,
       password_hash: hashedPassword,
       role: "buyer",
@@ -50,13 +69,26 @@ export const signupVendor = async (req, res, next) => {
   try {
     const { full_name, email, password, phone, address } = req.body;
 
-    if (!full_name || !email || !password) {
+    const normalizedPhone = normalizePhone10(phone);
+
+    if (!full_name || !email || !password || !normalizedPhone) {
       return res.status(400).json({ message: "Required fields missing" });
+    }
+
+    if (!isValidPhone10(normalizedPhone)) {
+      return res
+        .status(400)
+        .json({ message: "Phone number must be exactly 10 digits" });
     }
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({ message: "Email already registered" });
+    }
+
+    const existingPhone = await findUserByPhone(normalizedPhone);
+    if (existingPhone) {
+      return res.status(409).json({ message: "Phone already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -65,7 +97,7 @@ export const signupVendor = async (req, res, next) => {
     await createUser({
       full_name,
       email,
-      phone,
+      phone: normalizedPhone,
       address,
       password_hash: hashedPassword,
       role: "vendor",
@@ -231,11 +263,34 @@ export const updateProfile = async (req, res, next) => {
     const userId = req.user.userID; // From verifyToken middleware
     const { full_name, phone, address } = req.body;
 
+    const normalizedPhone = phone ? normalizePhone10(phone) : "";
+
     if (!full_name) {
       return res.status(400).json({ message: "Full name is required" });
     }
 
-    const success = await updateUser(userId, { full_name, phone, address });
+    if (phone && !isValidPhone10(normalizedPhone)) {
+      return res
+        .status(400)
+        .json({ message: "Phone number must be exactly 10 digits" });
+    }
+
+    if (phone) {
+      const existingPhone = await findUserByPhoneExcludingUser(
+        normalizedPhone,
+        userId,
+      );
+
+      if (existingPhone) {
+        return res.status(409).json({ message: "Phone already registered" });
+      }
+    }
+
+    const success = await updateUser(userId, {
+      full_name,
+      phone: phone ? normalizedPhone : phone,
+      address,
+    });
 
     if (!success) {
       return res
