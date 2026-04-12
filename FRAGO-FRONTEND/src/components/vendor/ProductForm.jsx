@@ -329,17 +329,42 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
   };
 
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length + previews.length + existingImages.length > 5) {
-      toast.warning("Maximum 5 images allowed");
+    const selectedFiles = Array.from(e.target.files || []);
+
+    const allowedMimeTypes = new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/avif",
+    ]);
+
+    const validFiles = selectedFiles.filter((file) =>
+      allowedMimeTypes.has(file.type),
+    );
+
+    const invalidCount = selectedFiles.length - validFiles.length;
+    if (invalidCount > 0) {
+      toast.error("Only JPG, PNG, WEBP, or AVIF images are allowed");
+    }
+
+    if (validFiles.length === 0) {
+      e.target.value = "";
       return;
     }
 
-    setImages((prev) => [...prev, ...files]);
+    if (validFiles.length + previews.length + existingImages.length > 5) {
+      toast.warning("Maximum 5 images allowed");
+      e.target.value = "";
+      return;
+    }
+
+    setImages((prev) => [...prev, ...validFiles]);
 
     // Create previews
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => [...prev, ...newPreviews]);
+
+    e.target.value = "";
   };
 
   const removePreview = (index) => {
@@ -752,7 +777,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
                     onChange={handleImageChange}
                     className="hidden"
                   />

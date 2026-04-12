@@ -58,8 +58,26 @@ app.get("/", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
+  console.error(err.stack || err);
+
+  const status =
+    err.statusCode ||
+    err.status ||
+    (err.name === "MulterError" ? 400 : 500);
+
+  if (status >= 500) {
+    return res.status(500).json({ error: "Something went wrong!" });
+  }
+
+  if (err.name === "MulterError") {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res
+        .status(400)
+        .json({ message: "Image too large. Max file size is 5MB" });
+    }
+  }
+
+  return res.status(status).json({ message: err.message || "Bad request" });
 });
 
 (async () => {
