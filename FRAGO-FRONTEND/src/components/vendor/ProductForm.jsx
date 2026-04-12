@@ -26,6 +26,15 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
   const [previews, setPreviews] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
+  const [touched, setTouched] = useState({});
+  const [errors, setErrors] = useState({});
+  const [variantTouched, setVariantTouched] = useState([
+    { size_ml: false, price: false, stock_quantity: false },
+  ]);
+  const [variantErrors, setVariantErrors] = useState([
+    { size_ml: "", price: "", stock_quantity: "" },
+  ]);
+
   // Initialize form with initialData when component mounts or initialData changes
   useEffect(() => {
     if (initialData) {
@@ -46,9 +55,134 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
           : [{ size_ml: "", price: "", stock_quantity: "" }],
       );
 
+      setVariantTouched(
+        initialData.variants?.length > 0
+          ? initialData.variants.map(() => ({
+              size_ml: false,
+              price: false,
+              stock_quantity: false,
+            }))
+          : [{ size_ml: false, price: false, stock_quantity: false }],
+      );
+
+      setVariantErrors(
+        initialData.variants?.length > 0
+          ? initialData.variants.map(() => ({
+              size_ml: "",
+              price: "",
+              stock_quantity: "",
+            }))
+          : [{ size_ml: "", price: "", stock_quantity: "" }],
+      );
+
       setExistingImages(initialData.images || []);
     }
   }, [initialData]);
+
+  const validateField = (name, value) => {
+    if (name === "name" && !String(value || "").trim()) {
+      return "Product name is required";
+    }
+    if (name === "brand" && !String(value || "").trim()) {
+      return "Brand name is required";
+    }
+    if (name === "category_id" && !String(value || "").trim()) {
+      return "Category is required";
+    }
+    if (name === "scent_type" && !String(value || "").trim()) {
+      return "Scent type is required";
+    }
+    if (name === "mood" && !String(value || "").trim()) {
+      return "Mood is required";
+    }
+    if (name === "origin" && !String(value || "").trim()) {
+      return "Origin is required";
+    }
+    return "";
+  };
+
+  const validateVariantField = (field, value) => {
+    if (!String(value || "").trim()) {
+      if (field === "size_ml") return "Size is required";
+      if (field === "price") return "Price is required";
+      if (field === "stock_quantity") return "Stock is required";
+    }
+    return "";
+  };
+
+  const validateAll = () => {
+    const newErrors = {
+      name: validateField("name", formData.name),
+      brand: validateField("brand", formData.brand),
+      category_id: validateField("category_id", formData.category_id),
+      scent_type: validateField("scent_type", formData.scent_type),
+      mood: validateField("mood", formData.mood),
+      origin: validateField("origin", formData.origin),
+    };
+
+    const newVariantErrors = variants.map((v) => {
+      const isCompletelyEmpty =
+        !String(v.size_ml || "").trim() &&
+        !String(v.price || "").trim() &&
+        !String(v.stock_quantity || "").trim();
+
+      // If user hasn't started this row (and there are other rows), don't force errors.
+      // But when submitting with nothing filled, we still want the first row errors.
+      if (isCompletelyEmpty) {
+        return { size_ml: "", price: "", stock_quantity: "" };
+      }
+
+      return {
+        size_ml: validateVariantField("size_ml", v.size_ml),
+        price: validateVariantField("price", v.price),
+        stock_quantity: validateVariantField("stock_quantity", v.stock_quantity),
+      };
+    });
+
+    const validVariants = variants.filter(
+      (v) =>
+        String(v.size_ml || "").trim() &&
+        String(v.price || "").trim() &&
+        String(v.stock_quantity || "").trim(),
+    );
+
+    // If nothing valid, enforce required errors on the first row.
+    if (validVariants.length === 0) {
+      newVariantErrors[0] = {
+        size_ml: "Size is required",
+        price: "Price is required",
+        stock_quantity: "Stock is required",
+      };
+    }
+
+    setErrors(newErrors);
+    setVariantErrors(newVariantErrors);
+
+    const hasAtLeastOneImage = existingImages.length + images.length > 0;
+    if (!hasAtLeastOneImage) {
+      setErrors((prev) => ({ ...prev, images: "At least one image is required" }));
+    } else {
+      setErrors((prev) => {
+        if (!prev.images) return prev;
+        const { images: _images, ...rest } = prev;
+        return rest;
+      });
+    }
+
+    const basicValid =
+      !newErrors.name &&
+      !newErrors.brand &&
+      !newErrors.category_id &&
+      !newErrors.scent_type &&
+      !newErrors.mood &&
+      !newErrors.origin;
+    const variantsValid = validVariants.length > 0;
+    return {
+      basicValid: basicValid && hasAtLeastOneImage,
+      variantsValid,
+      validVariants,
+    };
+  };
 
   const fetchCategories = useCallback(async () => {
     if (isLoadingCategories) return;
@@ -126,21 +260,72 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (touched[name]) {
+      const nextError = validateField(name, value);
+      setErrors((prev) => ({ ...prev, [name]: nextError }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const nextError = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: nextError }));
   };
 
   const handleVariantChange = (index, field, value) => {
     const newVariants = [...variants];
     newVariants[index][field] = value;
     setVariants(newVariants);
+
+    if (variantTouched[index]?.[field]) {
+      const next = [...variantErrors];
+      next[index] = {
+        ...next[index],
+        [field]: validateVariantField(field, value),
+      };
+      setVariantErrors(next);
+    }
+  };
+
+  const handleVariantBlur = (index, field, value) => {
+    const nextTouched = [...variantTouched];
+    nextTouched[index] = {
+      ...(nextTouched[index] || {
+        size_ml: false,
+        price: false,
+        stock_quantity: false,
+      }),
+      [field]: true,
+    };
+    setVariantTouched(nextTouched);
+
+    const nextErrors = [...variantErrors];
+    nextErrors[index] = {
+      ...(nextErrors[index] || { size_ml: "", price: "", stock_quantity: "" }),
+      [field]: validateVariantField(field, value),
+    };
+    setVariantErrors(nextErrors);
   };
 
   const addVariant = () => {
     setVariants([...variants, { size_ml: "", price: "", stock_quantity: "" }]);
+    setVariantTouched([
+      ...variantTouched,
+      { size_ml: false, price: false, stock_quantity: false },
+    ]);
+    setVariantErrors([
+      ...variantErrors,
+      { size_ml: "", price: "", stock_quantity: "" },
+    ]);
   };
 
   const removeVariant = (index) => {
     if (variants.length === 1) return;
     setVariants(variants.filter((_, i) => i !== index));
+    setVariantTouched(variantTouched.filter((_, i) => i !== index));
+    setVariantErrors(variantErrors.filter((_, i) => i !== index));
   };
 
   const handleImageChange = (e) => {
@@ -175,17 +360,27 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!formData.name || !formData.brand || !formData.category_id) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+    // Mark required fields as touched on submit
+    setTouched((prev) => ({
+      ...prev,
+      name: true,
+      brand: true,
+      category_id: true,
+      scent_type: true,
+      mood: true,
+      origin: true,
+      images: true,
+    }));
+    setVariantTouched((prev) => {
+      const next = [...prev];
+      if (!next[0]) next[0] = { size_ml: false, price: false, stock_quantity: false };
+      next[0] = { size_ml: true, price: true, stock_quantity: true };
+      return next;
+    });
 
-    const validVariants = variants.filter(
-      (v) => v.size_ml && v.price && v.stock_quantity,
-    );
-    if (validVariants.length === 0) {
-      toast.error("At least one valid variant is required");
+    const { basicValid, variantsValid, validVariants } = validateAll();
+    if (!basicValid || !variantsValid) {
+      toast.error("Please fill all the required fields in the form");
       return;
     }
 
@@ -205,7 +400,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-8" noValidate>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Basic Info */}
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
@@ -223,10 +418,15 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                onBlur={handleBlur}
+                className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
+                  touched.name && errors.name ? "ring-2 ring-red-500/30" : ""
+                }`}
                 placeholder="e.g. Oud Royale"
-                required
               />
+              {touched.name && errors.name && (
+                <p className="mt-1 text-xs text-red-600">{errors.name}</p>
+              )}
             </div>
 
             <div>
@@ -238,10 +438,15 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                 name="brand"
                 value={formData.brand}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                onBlur={handleBlur}
+                className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
+                  touched.brand && errors.brand ? "ring-2 ring-red-500/30" : ""
+                }`}
                 placeholder="e.g. Frago Signature"
-                required
               />
+              {touched.brand && errors.brand && (
+                <p className="mt-1 text-xs text-red-600">{errors.brand}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,8 +458,12 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   name="category_id"
                   value={formData.category_id}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
-                  required
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
+                    touched.category_id && errors.category_id
+                      ? "ring-2 ring-red-500/30"
+                      : ""
+                  }`}
                 >
                   <option value="">Select Category</option>
                   {categories.map((cat) => (
@@ -263,19 +472,32 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                     </option>
                   ))}
                 </select>
+                {touched.category_id && errors.category_id && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.category_id}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Scent Type
+                  Scent Type *
                 </label>
                 <input
                   type="text"
                   name="scent_type"
                   value={formData.scent_type}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
+                    touched.scent_type && errors.scent_type
+                      ? "ring-2 ring-red-500/30"
+                      : ""
+                  }`}
                   placeholder="e.g. Woody, Floral"
                 />
+                {touched.scent_type && errors.scent_type && (
+                  <p className="mt-1 text-xs text-red-600">{errors.scent_type}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -286,7 +508,6 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   value={formData.gender}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
-                  required
                 >
                   <option value="MEN">Men</option>
                   <option value="WOMEN">Women</option>
@@ -311,29 +532,43 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Mood
+                  Mood *
                 </label>
                 <input
                   type="text"
                   name="mood"
                   value={formData.mood}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
+                    touched.mood && errors.mood ? "ring-2 ring-red-500/30" : ""
+                  }`}
                   placeholder="e.g. Romantic, Energetic"
                 />
+                {touched.mood && errors.mood && (
+                  <p className="mt-1 text-xs text-red-600">{errors.mood}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Origin
+                  Origin *
                 </label>
                 <input
                   type="text"
                   name="origin"
                   value={formData.origin}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-900/10"
+                  onBlur={handleBlur}
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
+                    touched.origin && errors.origin
+                      ? "ring-2 ring-red-500/30"
+                      : ""
+                  }`}
                   placeholder="e.g. France, UAE"
                 />
+                {touched.origin && errors.origin && (
+                  <p className="mt-1 text-xs text-red-600">{errors.origin}</p>
+                )}
               </div>
             </div>
           </div>
@@ -372,9 +607,23 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       onChange={(e) =>
                         handleVariantChange(index, "size_ml", e.target.value)
                       }
-                      className="w-full px-3 py-2 bg-white border-none rounded-lg focus:ring-2 focus:ring-green-900/10"
+                      onBlur={(e) =>
+                        handleVariantBlur(index, "size_ml", e.target.value)
+                      }
+                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
+                        variantTouched[index]?.size_ml &&
+                        variantErrors[index]?.size_ml
+                          ? "ring-2 ring-red-500/30"
+                          : ""
+                      }`}
                       placeholder="ml"
                     />
+                    {variantTouched[index]?.size_ml &&
+                      variantErrors[index]?.size_ml && (
+                        <p className="mt-1 text-[10px] text-red-600">
+                          {variantErrors[index].size_ml}
+                        </p>
+                      )}
                   </div>
                   <div className="flex-1">
                     <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
@@ -387,9 +636,21 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       onChange={(e) =>
                         handleVariantChange(index, "price", e.target.value)
                       }
-                      className="w-full px-3 py-2 bg-white border-none rounded-lg focus:ring-2 focus:ring-green-900/10"
+                      onBlur={(e) =>
+                        handleVariantBlur(index, "price", e.target.value)
+                      }
+                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
+                        variantTouched[index]?.price && variantErrors[index]?.price
+                          ? "ring-2 ring-red-500/30"
+                          : ""
+                      }`}
                       placeholder="NPR"
                     />
+                    {variantTouched[index]?.price && variantErrors[index]?.price && (
+                      <p className="mt-1 text-[10px] text-red-600">
+                        {variantErrors[index].price}
+                      </p>
+                    )}
                   </div>
                   <div className="flex-1">
                     <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
@@ -406,9 +667,23 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                           e.target.value,
                         )
                       }
-                      className="w-full px-3 py-2 bg-white border-none rounded-lg focus:ring-2 focus:ring-green-900/10"
+                      onBlur={(e) =>
+                        handleVariantBlur(index, "stock_quantity", e.target.value)
+                      }
+                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
+                        variantTouched[index]?.stock_quantity &&
+                        variantErrors[index]?.stock_quantity
+                          ? "ring-2 ring-red-500/30"
+                          : ""
+                      }`}
                       placeholder="Qty"
                     />
+                    {variantTouched[index]?.stock_quantity &&
+                      variantErrors[index]?.stock_quantity && (
+                        <p className="mt-1 text-[10px] text-red-600">
+                          {variantErrors[index].stock_quantity}
+                        </p>
+                      )}
                   </div>
                   {variants.length > 1 && (
                     <button
@@ -498,6 +773,10 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
               Maximum 5 high-quality images. First image will be your cover
               image.
             </p>
+
+            {touched.images && errors.images && (
+              <p className="text-xs text-red-600">{errors.images}</p>
+            )}
           </div>
         </div>
       </div>

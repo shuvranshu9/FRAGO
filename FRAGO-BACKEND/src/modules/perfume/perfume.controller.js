@@ -1,13 +1,74 @@
 import cloudinary from "../../config/cloudinary.js";
 import * as Perfume from "./perfume.model.js";
 
+const safeParseJsonArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const isNonEmptyString = (value) =>
+  typeof value === "string" && value.trim().length > 0;
+
+const hasVariantFields = (variant) =>
+  variant &&
+  variant.size_ml !== undefined &&
+  variant.price !== undefined &&
+  variant.stock_quantity !== undefined &&
+  String(variant.size_ml).trim() !== "" &&
+  String(variant.price).trim() !== "" &&
+  String(variant.stock_quantity).trim() !== "";
+
 export const createPerfumeController = async (req, res) => {
   try {
     const images = [];
 
-    const perfumeName = req.body.name;
-    if (!perfumeName) {
-      return res.status(400).json({ message: "Perfume name is required" });
+    const name = isNonEmptyString(req.body?.name) ? req.body.name.trim() : "";
+    const brand = isNonEmptyString(req.body?.brand)
+      ? req.body.brand.trim()
+      : "";
+    const category_id = isNonEmptyString(req.body?.category_id)
+      ? req.body.category_id
+      : "";
+    const scent_type = isNonEmptyString(req.body?.scent_type)
+      ? req.body.scent_type.trim()
+      : "";
+    const mood = isNonEmptyString(req.body?.mood) ? req.body.mood.trim() : "";
+    const origin = isNonEmptyString(req.body?.origin)
+      ? req.body.origin.trim()
+      : "";
+    const gender = isNonEmptyString(req.body?.gender) ? req.body.gender : "";
+
+    const parsedVariants = safeParseJsonArray(req.body?.variants);
+
+    if (!name || !brand || !category_id || !scent_type || !mood || !origin || !gender) {
+      return res
+        .status(400)
+        .json({ message: "Please fill all the required fields in the form" });
+    }
+
+    if (!parsedVariants) {
+      return res.status(400).json({ message: "Invalid variants format" });
+    }
+
+    const validVariants = parsedVariants.filter(hasVariantFields);
+    if (validVariants.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one valid variant is required" });
+    }
+
+    const perfumeName = name;
+
+    if (!req.files?.length) {
+      return res
+        .status(400)
+        .json({ message: "At least one product image is required" });
     }
 
     // sanitize folder name
@@ -43,7 +104,14 @@ export const createPerfumeController = async (req, res) => {
     const perfume_id = await Perfume.createPerfume({
       vendor_id: req.user.userID,
       ...req.body,
-      variants: JSON.parse(req.body.variants || "[]"),
+      name,
+      brand,
+      category_id,
+      scent_type,
+      mood,
+      origin,
+      gender,
+      variants: validVariants,
       images,
     });
 
@@ -124,7 +192,50 @@ export const updatePerfumeController = async (req, res) => {
       return res.status(400).json({ message: "Request body is missing" });
     }
 
-    const perfumeName = req.body.name;
+    const name = isNonEmptyString(req.body?.name) ? req.body.name.trim() : "";
+    const brand = isNonEmptyString(req.body?.brand)
+      ? req.body.brand.trim()
+      : "";
+    const category_id = isNonEmptyString(req.body?.category_id)
+      ? req.body.category_id
+      : "";
+    const scent_type = isNonEmptyString(req.body?.scent_type)
+      ? req.body.scent_type.trim()
+      : "";
+    const mood = isNonEmptyString(req.body?.mood) ? req.body.mood.trim() : "";
+    const origin = isNonEmptyString(req.body?.origin)
+      ? req.body.origin.trim()
+      : "";
+    const gender = isNonEmptyString(req.body?.gender) ? req.body.gender : "";
+    const parsedVariants = safeParseJsonArray(req.body?.variants);
+
+    const keptImages = safeParseJsonArray(req.body?.existingImages) || [];
+    const totalImages = keptImages.length + (req.files?.length || 0);
+
+    if (!name || !brand || !category_id || !scent_type || !mood || !origin || !gender) {
+      return res
+        .status(400)
+        .json({ message: "Please fill all the required fields in the form" });
+    }
+
+    if (!parsedVariants) {
+      return res.status(400).json({ message: "Invalid variants format" });
+    }
+
+    const validVariants = parsedVariants.filter(hasVariantFields);
+    if (validVariants.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one valid variant is required" });
+    }
+
+    if (totalImages === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one product image is required" });
+    }
+
+    const perfumeName = name;
     // We only need folder name if there are new files to upload
     if (req.files?.length && perfumeName) {
       const folderName = perfumeName
@@ -156,7 +267,14 @@ export const updatePerfumeController = async (req, res) => {
 
     const updated = await Perfume.updatePerfume(id, {
       ...req.body,
-      variants: req.body.variants,
+      name,
+      brand,
+      category_id,
+      scent_type,
+      mood,
+      origin,
+      gender,
+      variants: JSON.stringify(validVariants),
       images: images,
     });
 
