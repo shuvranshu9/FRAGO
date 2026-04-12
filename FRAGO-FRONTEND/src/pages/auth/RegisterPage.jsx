@@ -162,7 +162,7 @@ function RegisterForm() {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error("Please fix the errors in the form", {
+      toast.error("Please fill all the details in the form", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -387,7 +387,7 @@ function RegisterForm() {
       </form>
 
       {/* Footer */}
-      <p className="text-xs text-center text-gray-600">
+      <p className="text-xs text-center text-gray-600 -mt-2">
         Already have an account?{" "}
         <span
           className="text-green-700 font-medium cursor-pointer hover:underline"
