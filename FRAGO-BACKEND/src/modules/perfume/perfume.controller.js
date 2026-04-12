@@ -135,6 +135,7 @@ export const getAllPerfumesController = async (req, res) => {
     const scentTypes = req.query.scent_type ?? req.query.scentTypes;
     const moods = req.query.mood ?? req.query.moods;
     const brands = req.query.brand ?? req.query.brands;
+    const gender = req.query.gender;
 
     const minPrice =
       req.query.minPrice !== undefined && req.query.minPrice !== ""
@@ -154,6 +155,7 @@ export const getAllPerfumesController = async (req, res) => {
       scentTypes,
       moods,
       brands,
+      gender,
       minPrice,
       maxPrice,
     };

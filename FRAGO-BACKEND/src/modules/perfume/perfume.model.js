@@ -99,6 +99,7 @@ const buildPerfumeWhere = ({
   scentTypes,
   moods,
   brands,
+  gender,
   minPrice,
   maxPrice,
 }) => {
@@ -127,6 +128,12 @@ const buildPerfumeWhere = ({
   if (brand.length) {
     clauses.push("p.brand IN (?)");
     params.push(brand);
+  }
+
+  const genders = normalizeStringArray(gender).map((g) => g.toUpperCase());
+  if (genders.length) {
+    clauses.push("p.gender IN (?)");
+    params.push(genders);
   }
 
   const min = Number(minPrice);

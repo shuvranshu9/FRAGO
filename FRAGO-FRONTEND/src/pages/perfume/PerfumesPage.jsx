@@ -4,6 +4,7 @@ import api from "../../utils/api";
 import ProductCard from "../../components/perfume/ProductCard";
 import FilterSidebar from "../../components/perfume/FilterSidebar";
 import SortDropdown from "../../components/perfume/SortDropdown";
+import GenderDropdown from "../../components/perfume/GenderDropdown";
 import CustomPagination from "../../components/global/CustomPagination";
 
 const PerfumesPage = () => {
@@ -19,6 +20,7 @@ const PerfumesPage = () => {
     scent_type: [],
     mood: [],
     brand: [],
+    gender: "",
     priceRange: { min: "", max: "" },
   });
   const [availableOptions, setAvailableOptions] = useState({
@@ -78,6 +80,7 @@ const PerfumesPage = () => {
           params.scent_type = filters.scent_type.join(",");
         if (filters.mood?.length) params.mood = filters.mood.join(",");
         if (filters.brand?.length) params.brand = filters.brand.join(",");
+        if (filters.gender) params.gender = filters.gender;
 
         if (filters.priceRange?.min !== "") params.minPrice = filters.priceRange.min;
         if (filters.priceRange?.max !== "") params.maxPrice = filters.priceRange.max;
@@ -127,10 +130,26 @@ const PerfumesPage = () => {
               Filters
             </button>
             <div className="hidden lg:block">
-              <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+              <div className="flex items-center gap-3">
+                <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+                <GenderDropdown
+                  gender={filters.gender}
+                  setGender={(nextGender) =>
+                    setFilters((prev) => ({ ...prev, gender: nextGender }))
+                  }
+                />
+              </div>
             </div>
             <div className="lg:hidden flex-1">
-              <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+              <div className="flex items-center gap-3">
+                <SortDropdown sortBy={sortBy} setSortBy={setSortBy} />
+                <GenderDropdown
+                  gender={filters.gender}
+                  setGender={(nextGender) =>
+                    setFilters((prev) => ({ ...prev, gender: nextGender }))
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -174,6 +193,7 @@ const PerfumesPage = () => {
                       scent_type: [],
                       mood: [],
                       brand: [],
+                      gender: "",
                       priceRange: { min: "", max: "" },
                     });
                     setSearchTerm("");

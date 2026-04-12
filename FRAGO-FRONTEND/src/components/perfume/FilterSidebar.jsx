@@ -22,6 +22,7 @@ const FilterSidebar = ({
       scent_type: [],
       mood: [],
       brand: [],
+      gender: "",
       priceRange: { min: "", max: "" },
     });
   };
@@ -30,6 +31,7 @@ const FilterSidebar = ({
     (filters.scent_type?.length || 0) +
     (filters.mood?.length || 0) +
     (filters.brand?.length || 0) +
+    (filters.gender ? 1 : 0) +
     (filters.priceRange?.min ? 1 : 0) +
     (filters.priceRange?.max ? 1 : 0);
 
