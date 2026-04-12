@@ -58,20 +58,20 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       setVariantTouched(
         initialData.variants?.length > 0
           ? initialData.variants.map(() => ({
-              size_ml: false,
-              price: false,
-              stock_quantity: false,
-            }))
+            size_ml: false,
+            price: false,
+            stock_quantity: false,
+          }))
           : [{ size_ml: false, price: false, stock_quantity: false }],
       );
 
       setVariantErrors(
         initialData.variants?.length > 0
           ? initialData.variants.map(() => ({
-              size_ml: "",
-              price: "",
-              stock_quantity: "",
-            }))
+            size_ml: "",
+            price: "",
+            stock_quantity: "",
+          }))
           : [{ size_ml: "", price: "", stock_quantity: "" }],
       );
 
@@ -419,9 +419,8 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                 value={formData.name}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
-                  touched.name && errors.name ? "ring-2 ring-red-500/30" : ""
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${touched.name && errors.name ? "ring-2 ring-red-500/30" : ""
+                  }`}
                 placeholder="e.g. Oud Royale"
               />
               {touched.name && errors.name && (
@@ -439,9 +438,8 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                 value={formData.brand}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
-                  touched.brand && errors.brand ? "ring-2 ring-red-500/30" : ""
-                }`}
+                className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${touched.brand && errors.brand ? "ring-2 ring-red-500/30" : ""
+                  }`}
                 placeholder="e.g. Frago Signature"
               />
               {touched.brand && errors.brand && (
@@ -459,11 +457,10 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   value={formData.category_id}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
-                    touched.category_id && errors.category_id
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${touched.category_id && errors.category_id
                       ? "ring-2 ring-red-500/30"
                       : ""
-                  }`}
+                    }`}
                 >
                   <option value="">Select Category</option>
                   {categories.map((cat) => (
@@ -488,11 +485,10 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   value={formData.scent_type}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
-                    touched.scent_type && errors.scent_type
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${touched.scent_type && errors.scent_type
                       ? "ring-2 ring-red-500/30"
                       : ""
-                  }`}
+                    }`}
                   placeholder="e.g. Woody, Floral"
                 />
                 {touched.scent_type && errors.scent_type && (
@@ -540,9 +536,8 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   value={formData.mood}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
-                    touched.mood && errors.mood ? "ring-2 ring-red-500/30" : ""
-                  }`}
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${touched.mood && errors.mood ? "ring-2 ring-red-500/30" : ""
+                    }`}
                   placeholder="e.g. Romantic, Energetic"
                 />
                 {touched.mood && errors.mood && (
@@ -559,11 +554,10 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                   value={formData.origin}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${
-                    touched.origin && errors.origin
+                  className={`w-full px-4 py-3 bg-gray-50 rounded-xl focus:ring-2 focus:ring-green-900/10 ${touched.origin && errors.origin
                       ? "ring-2 ring-red-500/30"
                       : ""
-                  }`}
+                    }`}
                   placeholder="e.g. France, UAE"
                 />
                 {touched.origin && errors.origin && (
@@ -610,12 +604,11 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       onBlur={(e) =>
                         handleVariantBlur(index, "size_ml", e.target.value)
                       }
-                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
-                        variantTouched[index]?.size_ml &&
-                        variantErrors[index]?.size_ml
+                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${variantTouched[index]?.size_ml &&
+                          variantErrors[index]?.size_ml
                           ? "ring-2 ring-red-500/30"
                           : ""
-                      }`}
+                        }`}
                       placeholder="ml"
                     />
                     {variantTouched[index]?.size_ml &&
@@ -639,11 +632,10 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       onBlur={(e) =>
                         handleVariantBlur(index, "price", e.target.value)
                       }
-                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
-                        variantTouched[index]?.price && variantErrors[index]?.price
+                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${variantTouched[index]?.price && variantErrors[index]?.price
                           ? "ring-2 ring-red-500/30"
                           : ""
-                      }`}
+                        }`}
                       placeholder="NPR"
                     />
                     {variantTouched[index]?.price && variantErrors[index]?.price && (
@@ -670,12 +662,11 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
                       onBlur={(e) =>
                         handleVariantBlur(index, "stock_quantity", e.target.value)
                       }
-                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
-                        variantTouched[index]?.stock_quantity &&
-                        variantErrors[index]?.stock_quantity
+                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${variantTouched[index]?.stock_quantity &&
+                          variantErrors[index]?.stock_quantity
                           ? "ring-2 ring-red-500/30"
                           : ""
-                      }`}
+                        }`}
                       placeholder="Qty"
                     />
                     {variantTouched[index]?.stock_quantity &&
@@ -778,29 +769,30 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
               <p className="text-xs text-red-600">{errors.images}</p>
             )}
           </div>
+          <div className="flex justify-end gap-4 md:pt-8">
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="px-8 rounded-full font-bold text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-10 py-3 bg-green-900 text-white rounded-full font-bold hover:bg-green-800 transition-all shadow-lg shadow-green-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading
+                ? "Saving..."
+                : initialData
+                  ? "Update Product"
+                  : "Launch Product"}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-4">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="px-8 py-3 rounded-full font-bold text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-10 py-3 bg-green-900 text-white rounded-full font-bold hover:bg-green-800 transition-all shadow-lg shadow-green-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading
-            ? "Saving..."
-            : initialData
-              ? "Update Product"
-              : "Launch Product"}
-        </button>
-      </div>
+
     </form>
   );
 };
