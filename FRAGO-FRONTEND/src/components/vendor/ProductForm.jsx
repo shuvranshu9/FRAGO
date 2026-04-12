@@ -334,7 +334,6 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
     const allowedMimeTypes = new Set([
       "image/jpeg",
       "image/png",
-      "image/webp",
       "image/avif",
     ]);
 
@@ -344,7 +343,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
 
     const invalidCount = selectedFiles.length - validFiles.length;
     if (invalidCount > 0) {
-      toast.error("Only JPG, PNG, WEBP, or AVIF images are allowed");
+      toast.error("Only JPG, PNG, or AVIF images are allowed");
     }
 
     if (validFiles.length === 0) {
