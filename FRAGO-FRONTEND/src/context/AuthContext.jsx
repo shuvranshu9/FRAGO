@@ -49,6 +49,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = useCallback(() => {
+    // Prevent redundant ProtectedRoute redirect toast right after logout
+    try {
+      sessionStorage.setItem("suppressAuthToastOnce", "1");
+      window.setTimeout(() => {
+        try {
+          sessionStorage.removeItem("suppressAuthToastOnce");
+        } catch {
+          // ignore
+        }
+      }, 3000);
+    } catch {
+      // ignore
+    }
+
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");

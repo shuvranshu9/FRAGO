@@ -53,11 +53,21 @@ function LoginForm() {
   useEffect(() => {
     const toastMessage = location.state?.toastMessage;
 
-    if (toastMessage && !shownRedirectToast.current) {
+    let suppressToast = false;
+    try {
+      suppressToast = sessionStorage.getItem("suppressAuthToastOnce") === "1";
+    } catch {
+      suppressToast = false;
+    }
+
+    if (toastMessage && !shownRedirectToast.current && !suppressToast) {
       shownRedirectToast.current = true;
       toast.info(toastMessage);
 
       // Clear state so it doesn't re-toast on refresh/back
+      navigate(location.pathname, { replace: true, state: null });
+    } else if (toastMessage && suppressToast) {
+      // Clear state even if we're suppressing, so it won't appear later.
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.pathname, location.state, navigate]);

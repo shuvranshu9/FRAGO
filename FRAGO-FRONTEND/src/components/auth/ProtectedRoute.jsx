@@ -36,6 +36,17 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   if (!isAuthenticated) {
+    let suppressToast = false;
+    try {
+      suppressToast = sessionStorage.getItem("suppressAuthToastOnce") === "1";
+    } catch {
+      suppressToast = false;
+    }
+
+    if (suppressToast) {
+      return <Navigate to="/login" replace />;
+    }
+
     return (
       <Navigate
         to="/login"
