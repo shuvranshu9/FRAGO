@@ -107,6 +107,27 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       if (field === "price") return "Price is required";
       if (field === "stock_quantity") return "Stock is required";
     }
+
+    if (field === "price" || field === "stock_quantity") {
+      const numeric = Number.parseFloat(
+        String(value ?? "")
+          .trim()
+          .replace(/,/g, "")
+          .replace(/[^0-9.-]/g, ""),
+      );
+
+      if (!Number.isFinite(numeric)) {
+        return field === "price"
+          ? "Enter a valid price"
+          : "Enter a valid stock quantity";
+      }
+
+      if (numeric <= 0) {
+        return field === "price"
+          ? "Price must be greater than 0"
+          : "Stock must be greater than 0";
+      }
+    }
     return "";
   };
 
@@ -120,31 +141,48 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       origin: validateField("origin", formData.origin),
     };
 
-    const newVariantErrors = variants.map((v) => {
+    let firstNonPositiveError = "";
+
+    const newVariantErrors = variants.map((v, idx) => {
       const isCompletelyEmpty =
         !String(v.size_ml || "").trim() &&
         !String(v.price || "").trim() &&
         !String(v.stock_quantity || "").trim();
 
-      // If user hasn't started this row (and there are other rows), don't force errors.
-      // But when submitting with nothing filled, we still want the first row errors.
       if (isCompletelyEmpty) {
         return { size_ml: "", price: "", stock_quantity: "" };
       }
 
-      return {
+      const nextErrors = {
         size_ml: validateVariantField("size_ml", v.size_ml),
         price: validateVariantField("price", v.price),
         stock_quantity: validateVariantField("stock_quantity", v.stock_quantity),
       };
+
+      if (!firstNonPositiveError) {
+        if (nextErrors.price === "Price must be greater than 0") {
+          firstNonPositiveError = `Variant ${idx + 1}: price must be greater than 0`;
+        } else if (nextErrors.stock_quantity === "Stock must be greater than 0") {
+          firstNonPositiveError = `Variant ${idx + 1}: stock must be greater than 0`;
+        }
+      }
+
+      return nextErrors;
     });
 
-    const validVariants = variants.filter(
-      (v) =>
-        String(v.size_ml || "").trim() &&
-        String(v.price || "").trim() &&
-        String(v.stock_quantity || "").trim(),
-    );
+    const validVariants = variants.filter((v) => {
+      if (
+        !String(v.size_ml || "").trim() ||
+        !String(v.price || "").trim() ||
+        !String(v.stock_quantity || "").trim()
+      ) {
+        return false;
+      }
+
+      const priceError = validateVariantField("price", v.price);
+      const stockError = validateVariantField("stock_quantity", v.stock_quantity);
+      return !priceError && !stockError;
+    });
 
     // If nothing valid, enforce required errors on the first row.
     if (validVariants.length === 0) {
@@ -181,6 +219,7 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       basicValid: basicValid && hasAtLeastOneImage,
       variantsValid,
       validVariants,
+      firstNonPositiveError,
     };
   };
 
@@ -402,9 +441,14 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       return next;
     });
 
-    const { basicValid, variantsValid, validVariants } = validateAll();
+    const { basicValid, variantsValid, validVariants, firstNonPositiveError } =
+      validateAll();
     if (!basicValid || !variantsValid) {
-      toast.error("Please fill all the required fields in the form");
+      if (firstNonPositiveError) {
+        toast.error(firstNonPositiveError);
+      } else {
+        toast.error("Please fill all the required fields in the form");
+      }
       return;
     }
 

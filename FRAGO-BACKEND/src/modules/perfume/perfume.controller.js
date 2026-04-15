@@ -24,6 +24,27 @@ const hasVariantFields = (variant) =>
   String(variant.price).trim() !== "" &&
   String(variant.stock_quantity).trim() !== "";
 
+const toFiniteNumber = (value) => {
+  const numeric =
+    typeof value === "number"
+      ? value
+      : Number.parseFloat(String(value ?? "").trim().replace(/,/g, ""));
+  return Number.isFinite(numeric) ? numeric : null;
+};
+
+const isPositiveNumber = (value) => {
+  const numeric = toFiniteNumber(value);
+  return numeric !== null && numeric > 0;
+};
+
+const getInvalidVariantReason = (variant) => {
+  if (!isPositiveNumber(variant?.price)) return "Variant price must be greater than 0";
+  if (!isPositiveNumber(variant?.stock_quantity)) {
+    return "Variant stock quantity must be greater than 0";
+  }
+  return "";
+};
+
 export const createPerfumeController = async (req, res) => {
   try {
     const images = [];
@@ -61,6 +82,13 @@ export const createPerfumeController = async (req, res) => {
       return res
         .status(400)
         .json({ message: "At least one valid variant is required" });
+    }
+
+    const invalidReason = validVariants
+      .map(getInvalidVariantReason)
+      .find((m) => m);
+    if (invalidReason) {
+      return res.status(400).json({ message: invalidReason });
     }
 
     const perfumeName = name;
@@ -288,6 +316,13 @@ export const updatePerfumeController = async (req, res) => {
       return res
         .status(400)
         .json({ message: "At least one valid variant is required" });
+    }
+
+    const invalidReason = validVariants
+      .map(getInvalidVariantReason)
+      .find((m) => m);
+    if (invalidReason) {
+      return res.status(400).json({ message: invalidReason });
     }
 
     if (totalImages === 0) {
