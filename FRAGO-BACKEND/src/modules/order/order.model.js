@@ -145,6 +145,35 @@ export const getOrderMetaById = async (orderId) => {
   return rows[0] || null;
 };
 
+export const getOrderStatusById = async (orderId) => {
+  const [rows] = await pool.query(
+    "SELECT order_status FROM order_table WHERE order_id = ?",
+    [orderId],
+  );
+  return rows[0]?.order_status || null;
+};
+
+// Ensures vendor only updates orders that contain ONLY their items
+export const getVendorOrderScope = async (vendorId, orderId) => {
+  const [[row]] = await pool.query(
+    `
+    SELECT
+      COUNT(DISTINCT p.vendor_id) AS vendor_count,
+      SUM(CASE WHEN p.vendor_id = ? THEN 1 ELSE 0 END) AS vendor_item_count
+    FROM order_item oi
+    JOIN perfume_variant pv ON oi.variant_id = pv.variant_id
+    JOIN perfume p ON pv.perfume_id = p.perfume_id
+    WHERE oi.order_id = ?
+    `,
+    [vendorId, orderId],
+  );
+
+  return {
+    vendorCount: Number(row?.vendor_count ?? 0),
+    vendorItemCount: Number(row?.vendor_item_count ?? 0),
+  };
+};
+
 // Update order status (Admin/Vendor)
 export const updateOrderStatus = async (orderId, status) => {
   const conn = await pool.getConnection();
@@ -224,6 +253,40 @@ export const cancelOrder = async (orderId, userId) => {
     // Update status
     await conn.query(
       "UPDATE order_table SET order_status = 'cancelled' WHERE order_id = ?",
+      [orderId],
+    );
+
+    await conn.commit();
+    return true;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+// User confirms delivery (shipped -> delivered)
+export const confirmOrderDelivered = async (orderId, userId) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [order] = await conn.query(
+      "SELECT order_status FROM order_table WHERE order_id = ? AND user_id = ?",
+      [orderId, userId],
+    );
+
+    if (order.length === 0) {
+      throw new Error("Order not found");
+    }
+
+    if (String(order[0].order_status).toLowerCase() !== "shipped") {
+      throw new Error("Only shipped orders can be marked as delivered");
+    }
+
+    await conn.query(
+      "UPDATE order_table SET order_status = 'delivered' WHERE order_id = ?",
       [orderId],
     );
 

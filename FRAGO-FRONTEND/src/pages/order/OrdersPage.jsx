@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import CustomPagination from "../../components/global/customPagination";
+import CustomPagination from "../../components/global/CustomPagination";
 import {
   Package,
   Calendar,
@@ -31,6 +31,11 @@ const OrdersPage = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [payingOrderId, setPayingOrderId] = useState(null);
+  const [isConfirmDeliveryModalOpen, setIsConfirmDeliveryModalOpen] =
+    useState(false);
+  const [orderToConfirmDelivery, setOrderToConfirmDelivery] = useState(null);
+  const [confirmingDeliveryOrderId, setConfirmingDeliveryOrderId] =
+    useState(null);
 
   const fetchOrders = useCallback(async () => {
     if (!token) return;
@@ -126,6 +131,42 @@ const OrdersPage = () => {
       );
     } finally {
       setPayingOrderId(null);
+    }
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!orderToConfirmDelivery) return;
+
+    setConfirmingDeliveryOrderId(orderToConfirmDelivery);
+    try {
+      await api.patch(
+        `/order/${orderToConfirmDelivery}/confirm-delivery`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      toast.success("Thanks! Order marked as delivered");
+
+      setOrders(
+        orders.map((order) =>
+          order.order_id === orderToConfirmDelivery
+            ? { ...order, order_status: "delivered" }
+            : order,
+        ),
+      );
+
+      fetchOrders();
+    } catch (error) {
+      console.error("Error confirming delivery:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to confirm delivery",
+      );
+    } finally {
+      setConfirmingDeliveryOrderId(null);
+      setIsConfirmDeliveryModalOpen(false);
+      setOrderToConfirmDelivery(null);
     }
   };
 
@@ -321,6 +362,27 @@ const OrdersPage = () => {
                             </Link>
                           </>
                         )}
+
+                        {order.order_status.toLowerCase() === "shipped" && (
+                          <button
+                            onClick={() => {
+                              setOrderToConfirmDelivery(order.order_id);
+                              setIsConfirmDeliveryModalOpen(true);
+                            }}
+                            disabled={
+                              confirmingDeliveryOrderId === order.order_id
+                            }
+                            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-green-900 text-white rounded-xl text-xs font-bold hover:bg-green-800 transition-all shadow-md shadow-green-900/10 disabled:opacity-50"
+                            title="Mark as Received"
+                          >
+                            {confirmingDeliveryOrderId === order.order_id ? (
+                              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Package size={14} />
+                            )}
+                            Mark as Received
+                          </button>
+                        )}
                         <Link
                           to={`/order-success/${order.order_id}`}
                           className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-green-900 transition-colors group"
@@ -406,6 +468,25 @@ const OrdersPage = () => {
                         </Link>
                       </>
                     )}
+
+                    {order.order_status.toLowerCase() === "shipped" && (
+                      <button
+                        onClick={() => {
+                          setOrderToConfirmDelivery(order.order_id);
+                          setIsConfirmDeliveryModalOpen(true);
+                        }}
+                        disabled={confirmingDeliveryOrderId === order.order_id}
+                        className="h-10 px-4 bg-green-900 rounded-xl inline-flex items-center justify-center gap-2 text-white hover:bg-green-800 transition-all border border-green-900 shadow-md shadow-green-900/10 disabled:opacity-50"
+                        title="Mark as Received"
+                      >
+                        {confirmingDeliveryOrderId === order.order_id ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Package size={18} />
+                        )}
+                        <span className="text-xs font-bold">Received</span>
+                      </button>
+                    )}
                     <Link
                       to={`/order-success/${order.order_id}`}
                       className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-green-900 hover:text-white transition-all shadow-sm border border-gray-100"
@@ -437,6 +518,20 @@ const OrdersPage = () => {
         confirmText="Yes, Cancel Order"
         confirmColor="bg-red-600"
         icon={<AlertTriangle size={24} />}
+      />
+
+      <ConfirmationModal
+        isOpen={isConfirmDeliveryModalOpen}
+        onClose={() => {
+          setIsConfirmDeliveryModalOpen(false);
+          setOrderToConfirmDelivery(null);
+        }}
+        onConfirm={handleConfirmDelivery}
+        title="Confirm Delivery"
+        description="Have you received this order? This will mark it as delivered."
+        confirmText="Yes, Mark as Delivered"
+        confirmColor="bg-green-900"
+        icon={<Package size={24} />}
       />
     </div>
   );

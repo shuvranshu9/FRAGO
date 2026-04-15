@@ -6,6 +6,7 @@ import { alpha } from "@mui/material/styles";
 import { theme } from "../../styles/theme";
 import { PieChart, Pie, Tooltip, ResponsiveContainer } from "recharts";
 import NumberFormat from "../../components/global/NumberFormat";
+import { toast } from "react-toastify";
 import {
   FiShoppingBag,
   FiDollarSign,
@@ -29,7 +30,40 @@ const getFullImageUrl = (imageUrl) => {
   return `http://localhost:8000${normalizedPath}`;
 };
 
-const OrderDetailsModal = ({ order, onClose }) => {
+const getNextVendorStatus = (currentStatus) => {
+  const status = String(currentStatus || "").toLowerCase();
+  if (status === "paid") return "processing";
+  if (status === "processing") return "shipped";
+  if (status === "shipped") return "delivered";
+  return "";
+};
+
+const formatStatusLabel = (status) => {
+  const s = String(status || "").toLowerCase();
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+const getStatusPillClasses = (status) => {
+  switch (String(status || "").toLowerCase()) {
+    case "paid":
+      return "bg-blue-100 text-blue-700";
+    case "processing":
+      return "bg-purple-100 text-purple-700";
+    case "shipped":
+      return "bg-indigo-100 text-indigo-700";
+    case "delivered":
+      return "bg-emerald-100 text-emerald-700";
+    case "pending":
+      return "bg-amber-100 text-amber-700";
+    case "cancelled":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+};
+
+const OrderDetailsModal = ({ order, onClose, onUpdateStatus, isUpdating }) => {
   // Prevent background scrolling when modal is open
   useEffect(() => {
     if (order) {
@@ -43,6 +77,11 @@ const OrderDetailsModal = ({ order, onClose }) => {
   }, [order]);
 
   if (!order) return null;
+
+  const currentStatus = String(order.order_status || "").toLowerCase();
+  const nextStatus = getNextVendorStatus(currentStatus);
+  const flow = ["paid", "processing", "shipped", "delivered"];
+  const currentStepIndex = flow.indexOf(currentStatus);
 
   let items = order.items;
   if (typeof items === "string") {
@@ -76,7 +115,108 @@ const OrderDetailsModal = ({ order, onClose }) => {
           </button>
         </div>
 
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-6 max-h-[60vh] overflow-y-auto ">
+          <div className="mb-6 rounded-2xl border border-gray-100 bg-white">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ">
+              <div className="min-w-0 ">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Order Status
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${getStatusPillClasses(
+                      currentStatus,
+                    )}`}
+                  >
+                    {formatStatusLabel(currentStatus)}
+                  </span>
+
+                  {nextStatus ? (
+                    <>
+                      <span className="text-gray-300 font-bold">→</span>
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase bg-green-50 text-green-900">
+                        {formatStatusLabel(nextStatus)}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+
+                <p className="mt-2 text-xs text-gray-500">
+                  Vendors can update only paid orders: processing → shipped → delivered.
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                {nextStatus ? (
+                  <button
+                    onClick={() =>
+                      typeof onUpdateStatus === "function"
+                        ? onUpdateStatus(order.order_id, nextStatus)
+                        : null
+                    }
+                    disabled={isUpdating}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-full bg-primary hover:bg-secondary disabled:opacity-60"
+                  >
+                    <FiCheckCircle size={16} />
+                    {isUpdating
+                      ? "Updating..."
+                      : `Move to ${formatStatusLabel(nextStatus)}`}
+                  </button>
+                ) : (
+                  <div className="text-xs text-gray-400">
+                    No action available
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {currentStepIndex !== -1 ? (
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {flow.map((s) => (
+                    <span
+                      key={s}
+                      className={
+                        flow.indexOf(s) <= currentStepIndex
+                          ? "text-gray-700"
+                          : "text-gray-400"
+                      }
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-2 flex items-center">
+                  {flow.map((s, idx) => {
+                    const isDone = idx < currentStepIndex;
+                    const isActive = idx === currentStepIndex;
+                    return (
+                      <div key={s} className="flex items-center flex-1">
+                        <div
+                          className={`w-3.5 h-3.5 rounded-full border-2 ${
+                            isDone
+                              ? "bg-primary border-primary"
+                              : isActive
+                                ? "bg-white border-primary"
+                                : "bg-white border-gray-200"
+                          }`}
+                        />
+                        {idx !== flow.length - 1 ? (
+                          <div
+                            className={`h-0.5 flex-1 mx-2 ${
+                              isDone ? "bg-primary" : "bg-gray-200"
+                            }`}
+                          />
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
           <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
             Items Purchased
           </h4>
@@ -162,6 +302,7 @@ const VendorDashboardPage = () => {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [topProducts, setTopProducts] = useState([]);
   const isFirstLoad = useRef(true);
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
 
   const buildOrdersUrl = useCallback(
     (currentPage, currentFilters) => {
@@ -256,6 +397,10 @@ const VendorDashboardPage = () => {
     switch (status) {
       case "paid":
         return "bg-blue-100 text-blue-600";
+      case "processing":
+        return "bg-purple-100 text-purple-600";
+      case "shipped":
+        return "bg-indigo-100 text-indigo-600";
       case "delivered":
         return "bg-green-100 text-green-600";
       case "pending":
@@ -264,6 +409,38 @@ const VendorDashboardPage = () => {
         return "bg-red-100 text-red-600";
       default:
         return "bg-gray-100 text-gray-600";
+    }
+  };
+
+  const updateVendorOrderStatus = async (orderId, newStatus) => {
+    if (!newStatus) {
+      toast.error("Please select a status");
+      return;
+    }
+    try {
+      setUpdatingOrderId(orderId);
+      const token = localStorage.getItem("token");
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.put(
+        `http://localhost:8000/api/order/${orderId}/status`,
+        { status: newStatus },
+        config,
+      );
+
+      toast.success("Order status updated");
+      // refresh dashboard numbers + orders list
+      fetchDashboardData(page, filters);
+      setSelectedOrder((prev) =>
+        prev && prev.order_id === orderId
+          ? { ...prev, order_status: newStatus }
+          : prev,
+      );
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Failed to update order status";
+      toast.error(message);
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -541,6 +718,10 @@ const VendorDashboardPage = () => {
       <OrderDetailsModal
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
+        onUpdateStatus={updateVendorOrderStatus}
+        isUpdating={
+          selectedOrder ? updatingOrderId === selectedOrder.order_id : false
+        }
       />
     </div>
   );

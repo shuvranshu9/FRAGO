@@ -145,7 +145,7 @@ export const getOrderDetailsController = async (req, res) => {
 export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { status } = req.body;
+    const status = String(req.body?.status || "").toLowerCase();
 
     const validStatuses = [
       "pending",
@@ -157,6 +157,52 @@ export const updateOrderStatusController = async (req, res) => {
     ];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
+    }
+
+    // Vendor rules (real-world): vendors can only move PAID orders forward.
+    // pending/paid/cancelled are managed by code.
+    const vendorId = req.user.userID;
+    const allowedVendorTargets = ["processing", "shipped", "delivered"];
+    if (!allowedVendorTargets.includes(status)) {
+      return res.status(400).json({
+        message:
+          "Vendors can only update status to processing, shipped, or delivered",
+      });
+    }
+
+    const currentStatus = await OrderModel.getOrderStatusById(orderId);
+    if (!currentStatus) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const current = String(currentStatus).toLowerCase();
+    const nextByStatus = {
+      paid: "processing",
+      processing: "shipped",
+      shipped: "delivered",
+    };
+
+    const expectedNext = nextByStatus[current];
+    if (!expectedNext) {
+      return res.status(400).json({
+        message: "Order status cannot be updated at this stage",
+      });
+    }
+    if (status !== expectedNext) {
+      return res.status(400).json({
+        message: `Invalid status transition. Next status should be '${expectedNext}'.`,
+      });
+    }
+
+    const scope = await OrderModel.getVendorOrderScope(vendorId, orderId);
+    if (scope.vendorItemCount <= 0) {
+      return res.status(403).json({ message: "Unauthorized order" });
+    }
+    if (scope.vendorCount !== 1) {
+      return res.status(400).json({
+        message:
+          "This order contains items from multiple vendors and cannot be updated here",
+      });
     }
 
     const updated = await OrderModel.updateOrderStatus(orderId, status);
@@ -193,6 +239,25 @@ export const cancelOrderController = async (req, res) => {
     res
       .status(err.message === "Order not found" ? 404 : 400)
       .json({ message: err.message || "Failed to cancel order" });
+  }
+};
+
+// Confirm delivery (User)
+export const confirmDeliveryController = async (req, res) => {
+  try {
+    const userId = req.user.userID;
+    const { orderId } = req.params;
+
+    await OrderModel.confirmOrderDelivered(orderId, userId);
+
+    emitOrderUpdated(userId, orderId, "delivered");
+
+    res.json({ message: "Order marked as delivered" });
+  } catch (err) {
+    console.error("Error confirming delivery:", err);
+    res
+      .status(err.message === "Order not found" ? 404 : 400)
+      .json({ message: err.message || "Failed to confirm delivery" });
   }
 };
 
