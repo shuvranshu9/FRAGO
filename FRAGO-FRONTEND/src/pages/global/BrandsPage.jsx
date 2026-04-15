@@ -142,7 +142,7 @@ const BrandsPage = () => {
       {/* Brands Grid */}
       <section className="px-4 md:px-8 mb-6 md:mb-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 animate-fade-in delay-100">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 animate-fade-in delay-100">
             {filteredBrands.map((brand) => (
               <BrandCard key={brand.id} brand={brand} />
             ))}
