@@ -115,8 +115,8 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus, isUpdating }) => {
           </button>
         </div>
 
-        <div className="p-6 max-h-[60vh] overflow-y-auto ">
-          <div className="mb-6 rounded-2xl border border-gray-100 bg-white">
+        <div className="p-4 max-h-[60vh] overflow-y-auto ">
+          <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-5 ">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ">
               <div className="min-w-0 ">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
