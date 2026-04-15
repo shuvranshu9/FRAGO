@@ -56,7 +56,7 @@ const GenderDropdown = ({ gender = "", setGender }) => {
               right: dropdownPos.right,
               zIndex: 9999,
             }}
-            className="w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl py-2"
+            className="w-56 max-w-[calc(100vw-2rem)] bg-white border border-gray-100 rounded-2xl shadow-2xl py-2"
           >
             {options.map((option) => (
               <button
@@ -80,17 +80,21 @@ const GenderDropdown = ({ gender = "", setGender }) => {
       : null;
 
   return (
-    <div className="relative">
+    <div className="relative w-full sm:w-auto min-w-0">
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-6 py-3 bg-white hover:bg-gray-50 border border-gray-100 rounded-full transition-all duration-300 text-sm font-medium text-gray-700 shadow-sm"
+        className="w-full sm:w-auto min-w-0 flex items-center justify-between gap-3 px-6 py-3 bg-white hover:bg-gray-50 border border-gray-100 rounded-full transition-all duration-300 text-sm font-medium text-gray-700 shadow-sm"
       >
-        <span className="text-gray-400 font-normal">Gender:</span>
-        {activeLabel}
+        <span className="text-gray-400 font-normal hidden sm:inline shrink-0">
+          Gender:
+        </span>
+        <span className="min-w-0 flex-1 truncate text-left">{activeLabel}</span>
         <ChevronDown
           size={16}
-          className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+          className={`shrink-0 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
 
