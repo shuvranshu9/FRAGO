@@ -184,8 +184,14 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
       return !priceError && !stockError;
     });
 
-    // If nothing valid, enforce required errors on the first row.
-    if (validVariants.length === 0) {
+    const hasAnyStartedVariant = variants.some(
+      (v) =>
+        String(v.size_ml || "").trim() ||
+        String(v.price || "").trim() ||
+        String(v.stock_quantity || "").trim(),
+    );
+
+    if (validVariants.length === 0 && !hasAnyStartedVariant) {
       newVariantErrors[0] = {
         size_ml: "Size is required",
         price: "Price is required",
@@ -656,103 +662,121 @@ const ProductForm = ({ initialData, onSubmit, loading }) => {
               {variants.map((variant, index) => (
                 <div
                   key={index}
-                  className="flex gap-3 items-end p-4 bg-gray-50 rounded-2xl relative"
+                  className="p-4 bg-gray-50 rounded-2xl relative"
                 >
-                  <div className="flex-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
-                      Size (ml)
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={variant.size_ml}
-                      onChange={(e) =>
-                        handleVariantChange(index, "size_ml", e.target.value)
-                      }
-                      onBlur={(e) =>
-                        handleVariantBlur(index, "size_ml", e.target.value)
-                      }
-                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${variantTouched[index]?.size_ml &&
+                  <div className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+                        Size (ml)
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={variant.size_ml}
+                        onChange={(e) =>
+                          handleVariantChange(index, "size_ml", e.target.value)
+                        }
+                        onBlur={(e) =>
+                          handleVariantBlur(index, "size_ml", e.target.value)
+                        }
+                        className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
+                          variantTouched[index]?.size_ml &&
                           variantErrors[index]?.size_ml
-                          ? "ring-2 ring-red-500/30"
-                          : ""
+                            ? "ring-2 ring-red-500/30"
+                            : ""
                         }`}
-                      placeholder="ml"
-                    />
-                    {variantTouched[index]?.size_ml &&
-                      variantErrors[index]?.size_ml && (
-                        <p className="mt-1 text-[10px] text-red-600">
-                          {variantErrors[index].size_ml}
-                        </p>
-                      )}
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
-                      Price (NPR)
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={variant.price}
-                      onChange={(e) =>
-                        handleVariantChange(index, "price", e.target.value)
-                      }
-                      onBlur={(e) =>
-                        handleVariantBlur(index, "price", e.target.value)
-                      }
-                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${variantTouched[index]?.price && variantErrors[index]?.price
-                          ? "ring-2 ring-red-500/30"
-                          : ""
+                        placeholder="ml"
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+                        Price (NPR)
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={variant.price}
+                        onChange={(e) =>
+                          handleVariantChange(index, "price", e.target.value)
+                        }
+                        onBlur={(e) =>
+                          handleVariantBlur(index, "price", e.target.value)
+                        }
+                        className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
+                          variantTouched[index]?.price &&
+                          variantErrors[index]?.price
+                            ? "ring-2 ring-red-500/30"
+                            : ""
                         }`}
-                      placeholder="NPR"
-                    />
-                    {variantTouched[index]?.price && variantErrors[index]?.price && (
-                      <p className="mt-1 text-[10px] text-red-600">
-                        {variantErrors[index].price}
-                      </p>
+                        placeholder="NPR"
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
+                        Stock
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={variant.stock_quantity}
+                        onChange={(e) =>
+                          handleVariantChange(
+                            index,
+                            "stock_quantity",
+                            e.target.value,
+                          )
+                        }
+                        onBlur={(e) =>
+                          handleVariantBlur(
+                            index,
+                            "stock_quantity",
+                            e.target.value,
+                          )
+                        }
+                        className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${
+                          variantTouched[index]?.stock_quantity &&
+                          variantErrors[index]?.stock_quantity
+                            ? "ring-2 ring-red-500/30"
+                            : ""
+                        }`}
+                        placeholder="Qty"
+                      />
+                    </div>
+
+                    {variants.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(index)}
+                        className="p-2 text-red-400 hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 size={20} />
+                      </button>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <label className="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">
-                      Stock
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={variant.stock_quantity}
-                      onChange={(e) =>
-                        handleVariantChange(
-                          index,
-                          "stock_quantity",
-                          e.target.value,
-                        )
-                      }
-                      onBlur={(e) =>
-                        handleVariantBlur(index, "stock_quantity", e.target.value)
-                      }
-                      className={`w-full px-3 py-2 bg-white rounded-lg focus:ring-2 focus:ring-green-900/10 ${variantTouched[index]?.stock_quantity &&
-                          variantErrors[index]?.stock_quantity
-                          ? "ring-2 ring-red-500/30"
-                          : ""
-                        }`}
-                      placeholder="Qty"
-                    />
-                    {variantTouched[index]?.stock_quantity &&
-                      variantErrors[index]?.stock_quantity && (
-                        <p className="mt-1 text-[10px] text-red-600">
-                          {variantErrors[index].stock_quantity}
-                        </p>
-                      )}
-                  </div>
-                  {variants.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeVariant(index)}
-                      className="p-2 text-red-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  )}
+
+                  {(variantTouched[index]?.size_ml &&
+                    variantErrors[index]?.size_ml) ||
+                  (variantTouched[index]?.price &&
+                    variantErrors[index]?.price) ||
+                  (variantTouched[index]?.stock_quantity &&
+                    variantErrors[index]?.stock_quantity) ? (
+                    <div className="mt-2 text-[10px] text-red-600 flex flex-wrap gap-x-4 gap-y-1">
+                      {variantTouched[index]?.size_ml &&
+                        variantErrors[index]?.size_ml && (
+                          <span>Size: {variantErrors[index].size_ml}</span>
+                        )}
+                      {variantTouched[index]?.price &&
+                        variantErrors[index]?.price && (
+                          <span>Price: {variantErrors[index].price}</span>
+                        )}
+                      {variantTouched[index]?.stock_quantity &&
+                        variantErrors[index]?.stock_quantity && (
+                          <span>Stock: {variantErrors[index].stock_quantity}</span>
+                        )}
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>
