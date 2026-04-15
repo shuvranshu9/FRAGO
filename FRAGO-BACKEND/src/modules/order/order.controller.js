@@ -198,12 +198,6 @@ export const updateOrderStatusController = async (req, res) => {
     if (scope.vendorItemCount <= 0) {
       return res.status(403).json({ message: "Unauthorized order" });
     }
-    if (scope.vendorCount !== 1) {
-      return res.status(400).json({
-        message:
-          "This order contains items from multiple vendors and cannot be updated here",
-      });
-    }
 
     const updated = await OrderModel.updateOrderStatus(orderId, status);
 

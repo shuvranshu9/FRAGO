@@ -153,7 +153,7 @@ export const getOrderStatusById = async (orderId) => {
   return rows[0]?.order_status || null;
 };
 
-// Ensures vendor only updates orders that contain ONLY their items
+// Vendor scope for an order (used to verify vendor is part of the order)
 export const getVendorOrderScope = async (vendorId, orderId) => {
   const [[row]] = await pool.query(
     `
