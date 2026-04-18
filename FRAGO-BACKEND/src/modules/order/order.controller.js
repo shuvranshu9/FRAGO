@@ -10,7 +10,6 @@ const emitOrderUpdated = (userId, orderId, status) => {
       status,
     });
   } catch (err) {
-    // Socket may not be initialized in some environments (e.g., tests)
     console.warn("Socket emit skipped (orderUpdated):", err.message);
   }
 };
@@ -159,8 +158,6 @@ export const updateOrderStatusController = async (req, res) => {
       return res.status(400).json({ message: "Invalid status" });
     }
 
-    // Vendor rules (real-world): vendors can only move PAID orders forward.
-    // pending/paid/cancelled are managed by code.
     const vendorId = req.user.userID;
     const allowedVendorTargets = ["processing", "shipped", "delivered"];
     if (!allowedVendorTargets.includes(status)) {

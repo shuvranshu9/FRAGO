@@ -1,5 +1,5 @@
 import express from "express";
-import { requireBuyer, verifyToken } from "../../middlewares/authMiddleware.js";
+import {  verifyToken } from "../../middlewares/authMiddleware.js";
 import {
   getCartController,
   addToCartController,
