@@ -21,7 +21,7 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }) => {
   const { token, user, isAuthenticated } = useAuth();
 
-  const socketRef = useRef(null); // Keep ref for internal cleanup/checks
+  const socketRef = useRef(null);
   const [socket, setSocket] = useState(null); // Use state for the provider value
   const [isConnected, setIsConnected] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);

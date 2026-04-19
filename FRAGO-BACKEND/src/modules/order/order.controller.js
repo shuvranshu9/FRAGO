@@ -140,7 +140,7 @@ export const getOrderDetailsController = async (req, res) => {
   }
 };
 
-// Update order status (Vendor/Admin)
+// Update order status (Vendor)
 export const updateOrderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;

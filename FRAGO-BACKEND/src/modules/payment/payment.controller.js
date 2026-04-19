@@ -38,7 +38,7 @@ export const initiatePaymentController = async (req, res) => {
     const payload = {
       return_url: `${website_url}/order-success/${orderId}`,
       website_url: website_url,
-      amount: order.total_amount * 100, // Khalti expects amount in paisa
+      amount: order.total_amount * 100, 
       purchase_order_id: orderId.toString(),
       purchase_order_name: `Order #${orderId}`,
       customer_info: {

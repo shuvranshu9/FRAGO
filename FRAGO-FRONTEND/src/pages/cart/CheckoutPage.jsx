@@ -47,7 +47,7 @@ const CheckoutPage = () => {
       const response = await api.post(
         "/order",
         {
-          shippingAddress, // Even though backend doesn't explicitly save it yet, we pass it for the future
+          shippingAddress, 
           phone,
         },
         {
@@ -55,7 +55,6 @@ const CheckoutPage = () => {
         },
       );
 
-      // Force context cart refresh since backend cleared it
       await fetchCart();
 
       toast.success("Order placed successfully!");
