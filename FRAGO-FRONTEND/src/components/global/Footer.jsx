@@ -77,7 +77,7 @@ const Footer = () => {
               className="text-sm leading-relaxed"
             >
               Discover the art of scent with our curated collection of premium
-              fragrances. Elevating your senses since 1997.
+              fragrances. Elevating your senses since 2025.
             </p>
             <div className="flex space-x-4">
               {[FaFacebookF, FaInstagram, FaTwitter].map((Icon, index) => (
@@ -172,7 +172,7 @@ const Footer = () => {
                 >
                   Nepal
                   <br />
-                  Kathmandu, Nepal 75001
+                  Kathmandu, Nepal
                 </span>
               </li>
               <li className="flex items-center group cursor-pointer">
